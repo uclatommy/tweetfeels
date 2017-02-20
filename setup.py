@@ -1,4 +1,5 @@
-from distutils.core import setup
+#from distutils.core import setup
+from setuptools import setup
 
 setup(name='tweetfeels',
       version='0.1.0',
@@ -6,5 +7,6 @@ setup(name='tweetfeels',
       author='Thomas Chen',
       author_email='tkchen@gmail.com',
       url='https://github.com/uclatommy/tweetfeels',
+      download_url='https://github.com/uclatommy/tweetfeels/tarball/0.1.0',
       packages=['tweetfeels']
      )
