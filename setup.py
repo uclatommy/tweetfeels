@@ -2,11 +2,11 @@
 from setuptools import setup
 
 setup(name='tweetfeels',
-      version='0.1.0',
+      version='0.1.1',
       description='Real-time sentiment analysis for twitter.',
       author='Thomas Chen',
       author_email='tkchen@gmail.com',
       url='https://github.com/uclatommy/tweetfeels',
-      download_url='https://github.com/uclatommy/tweetfeels/tarball/0.1.0',
+      download_url='https://github.com/uclatommy/tweetfeels/tarball/0.1.1',
       packages=['tweetfeels']
      )
