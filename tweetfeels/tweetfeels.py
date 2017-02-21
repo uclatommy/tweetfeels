@@ -6,6 +6,7 @@ from tweepy import OAuthHandler
 from tweepy import Stream
 from tweetfeels import TweetData
 from tweetfeels import TweetListener
+import numpy as np
 
 
 def clean(text):
@@ -100,9 +101,10 @@ class TweetFeels(object):
                     {'id_str': row.id_str, 'sentiment': row.sentiment}
                     )
             df = df.loc[df.sentiment != 0]  # drop rows having 0 sentiment
-            g = df.groupby('created_at')
-            df['wa'] = df.sentiment*df.followers_count / g.followers_count.transform('sum')
-            df = g.wa.sum()
+            df = df.groupby('created_at')
+            df = df.apply(
+                lambda x: np.average(x.sentiment, weights=x.followers_count)
+                )
             df = df.sort_index()
             for row in df.iteritems():
                 self._sentiment = self._sentiment*0.99 + row[1]*0.01

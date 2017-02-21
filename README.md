@@ -80,38 +80,41 @@ login = [consumer_key, consumer_secret, access_token, access_token_secret]
     >>> t = Thread(target=print_feels)
     >>> trump_feels.start()
     >>> t.start()
-    [Mon Feb 20 18:03:23 2017] Sentiment Score: -0.008372357248499813
-    [Mon Feb 20 18:03:37 2017] Sentiment Score: -0.003758142966107373
-    [Mon Feb 20 18:03:51 2017] Sentiment Score: -0.019303709913836925
-    [Mon Feb 20 18:04:05 2017] Sentiment Score: -0.055019641398896174
-    [Mon Feb 20 18:04:20 2017] Sentiment Score: -0.07207850963244739
-    [Mon Feb 20 18:04:35 2017] Sentiment Score: -0.06494896516068921
-    [Mon Feb 20 18:04:50 2017] Sentiment Score: -0.05696019326554382
-    [Mon Feb 20 18:05:04 2017] Sentiment Score: -0.039204547830965976
-    [Mon Feb 20 18:05:19 2017] Sentiment Score: -0.04412865418228736
-    [Mon Feb 20 18:05:34 2017] Sentiment Score: -0.03692651001868575
-    [Mon Feb 20 18:05:49 2017] Sentiment Score: -0.032870649707088036
-    [Mon Feb 20 18:06:03 2017] Sentiment Score: -0.03195656229817732
-    [Mon Feb 20 18:06:18 2017] Sentiment Score: -0.04804936912471804
-    [Mon Feb 20 18:06:33 2017] Sentiment Score: -0.03265689149620199
-    [Mon Feb 20 18:06:48 2017] Sentiment Score: -0.038081113973837975
-    [Mon Feb 20 18:07:02 2017] Sentiment Score: -0.043703036700487634
-    [Mon Feb 20 18:07:16 2017] Sentiment Score: -0.05497670144141494
-    [Mon Feb 20 18:07:31 2017] Sentiment Score: -0.042350189513282524
-    [Mon Feb 20 18:07:46 2017] Sentiment Score: -0.03235421754666877
-    [Mon Feb 20 18:08:01 2017] Sentiment Score: -0.05711208717172596
-    [Mon Feb 20 18:08:15 2017] Sentiment Score: -0.07458379173398412
-    [Mon Feb 20 18:08:30 2017] Sentiment Score: -0.06876183464326659
-    [Mon Feb 20 18:08:44 2017] Sentiment Score: -0.0649472552182835
-    [Mon Feb 20 18:08:58 2017] Sentiment Score: -0.058314177602613836
-    [Mon Feb 20 18:09:13 2017] Sentiment Score: -0.07502686422203823
-    [Mon Feb 20 18:09:28 2017] Sentiment Score: -0.06267848788069674
-    [Mon Feb 20 18:09:42 2017] Sentiment Score: -0.08114859672057512
-    [Mon Feb 20 18:09:57 2017] Sentiment Score: -0.07412775442586042
-    [Mon Feb 20 18:10:11 2017] Sentiment Score: -0.06577743915574097
+    [Mon Feb 20 23:42:02 2017] Sentiment Score: -0.010528112416665309
+    [Mon Feb 20 23:42:13 2017] Sentiment Score: -0.007496043169013409
+    [Mon Feb 20 23:42:25 2017] Sentiment Score: -0.015294713038619036
+    [Mon Feb 20 23:42:36 2017] Sentiment Score: -0.030362951884842962
+    [Mon Feb 20 23:42:48 2017] Sentiment Score: -0.042087318872206333
+    [Mon Feb 20 23:42:59 2017] Sentiment Score: -0.041308681936680865
+    [Mon Feb 20 23:43:10 2017] Sentiment Score: -0.056203371039128994
+    [Mon Feb 20 23:43:22 2017] Sentiment Score: -0.07374769163753854
+    [Mon Feb 20 23:43:34 2017] Sentiment Score: -0.09549338153348486
+    [Mon Feb 20 23:43:46 2017] Sentiment Score: -0.10943157911799692
+    [Mon Feb 20 23:43:57 2017] Sentiment Score: -0.1406756546353098
+    [Mon Feb 20 23:44:08 2017] Sentiment Score: -0.12366467180485821
+    [Mon Feb 20 23:44:20 2017] Sentiment Score: -0.14460675229624026
+    [Mon Feb 20 23:44:32 2017] Sentiment Score: -0.13149386547613803
+    [Mon Feb 20 23:44:43 2017] Sentiment Score: -0.14568801433828418
+    [Mon Feb 20 23:44:55 2017] Sentiment Score: -0.14505295656838593
+    [Mon Feb 20 23:45:06 2017] Sentiment Score: -0.12853750933261338
+    [Mon Feb 20 23:45:17 2017] Sentiment Score: -0.11649611157554504
+    [Mon Feb 20 23:45:29 2017] Sentiment Score: -0.11382260762980569
+    [Mon Feb 20 23:45:40 2017] Sentiment Score: -0.11121839471955856
+    [Mon Feb 20 23:45:52 2017] Sentiment Score: -0.11083390577340985
+    [Mon Feb 20 23:46:03 2017] Sentiment Score: -0.10879727669948112
+    [Mon Feb 20 23:46:15 2017] Sentiment Score: -0.10137079133168492
+    [Mon Feb 20 23:46:26 2017] Sentiment Score: -0.10075971619875508
+    [Mon Feb 20 23:46:38 2017] Sentiment Score: -0.1194907722483259
+    [Mon Feb 20 23:46:49 2017] Sentiment Score: -0.1328795394197093
+    [Mon Feb 20 23:47:01 2017] Sentiment Score: -0.13734346200202507
+    [Mon Feb 20 23:47:12 2017] Sentiment Score: -0.1157629833027525
+    [Mon Feb 20 23:47:24 2017] Sentiment Score: -0.11030256885649424
+    [Mon Feb 20 23:47:35 2017] Sentiment Score: -0.12185876174059834
+    [Mon Feb 20 23:47:47 2017] Sentiment Score: -0.11323251979604802
+    [Mon Feb 20 23:47:58 2017] Sentiment Score: -0.11307793897469191
     >>> trump_feels.stop()
     ```
-    **Note:** Trump is an extremely high volume topic. We ran this for roughly 6.5 minutes and gathered nearly 15,000 tweets! For lower volume topics, you may want to poll the sentiment value less frequently than every 10 seconds.
+    **Note:** Trump is an extremely high volume topic. We ran this for roughly 6 minutes and gathered nearly 15,000 tweets! For lower volume topics, you may want to poll the sentiment value less frequently than every 10 seconds.
 
 3. Stream tweets continuously for another topic and save to a different database.
     ```python
@@ -152,11 +155,11 @@ The trained dataset that comes with [vaderSentiment](https://github.com/cjhutto/
 | | Sentiment | Tweet |
 | :---: | :--- | :--- |
 | 1 | -0.5106 | RT @TEN_GOP: BREAKING: Massive riots happening now in Sweden. Stockholm in flames. Trump was right again! |
-| 2 | -0.5574 | RT @Medeiros_____: Donald Trump and Russia @realDonaldTrump  #fakepresident  you're  fired |
-| 3 | 0.3612 | RT @KamalaHarris: RT if you agree: Americans deserve a transparent, independent investigation into Russia’s involvement with the Trump camp. |
-| 4 | 0.9217 | RT @robreiner: Someday, hopefully soon, Trump supporters will come to realize that he is not their president either. Freedom and justice fo… |
+| 2 | -0.8744 | RT @kurteichenwald: Intel shows our ally, Sweden, has no rise in crime. Trump saw on Fox it does. So he ignores intel, attacks our ally. ht… |
+| 3 | 0.7003 | RT @NoBoomGaming: I'm a glass half full kind of guy. Now that Trump won, think of all the new memes we'll have over the next four years! |
+| 4 | 0.9001 | RT @terrymendozer: Can we get a like for this cute Trump fan! Start them off young to love our country! #YoungPatriots… |
 
-The first tweet is clearly voicing support for Donald Trump yet the content of the tweet produces a negative sentiment. The second tweet is clearly in opposition and it also produces negative sentiment. The fourth tweet is in opposition and produces an overwhelmingly positive sentiment. Clearly, sentiment scores should not be confused with ideological alignment! Don't even get me started on sarcastic tweets.
+The first tweet is clearly voicing support for Donald Trump yet we get a negative score. The second tweet is clearly in opposition and it also produces a very negative sentiment. The fourth tweet is a case of sentiment aligning with approval. Clearly, sentiment scores should not be confused with ideological alignment or approval because it can go both ways! You can approve and make a negative comment and you can disapprove and make a positive sounding comment! Don't even get me started on sarcastic tweets (see third one).
 
 Sentiment scores tend to be more meaningful to non-ideological topics such as products and services. For example, here are some tweets from the Tesla dataset:
 
