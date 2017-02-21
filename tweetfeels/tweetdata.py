@@ -1,7 +1,7 @@
 import sqlite3
 import os
 import pandas as pd
-
+import logging
 
 class TweetData(object):
     """
@@ -11,6 +11,7 @@ class TweetData(object):
         self._db = file
         if not os.path.isfile(self._db):
             self.make_feels_db(self._db)
+        self._debug = False
 
     @property
     def fields(self):
@@ -25,9 +26,7 @@ class TweetData(object):
     def queue(self):
         conn = sqlite3.connect(self._db)
         df = pd.read_sql_query(
-            'SELECT id_str, text, created_at, sentiment FROM tweets '
-            'WHERE sentiment is NULL',
-            conn
+            'SELECT * FROM tweets WHERE sentiment is NULL', conn
             )
         return df
 
@@ -79,7 +78,8 @@ class TweetData(object):
             c.close()
             conn.commit()
         except:
-            print(f'Failed Query: {qry}, {vals}')
+            if self._debug:
+                logging.warning(f'Failed Query: {qry}, {vals}')
 
     def update_tweet(self, tweet):
         id_str = tweet['id_str']
@@ -101,4 +101,5 @@ class TweetData(object):
             c.close()
             conn.commit()
         except:
-            print(f'Failed Query: {qry}, {vals+(id_str,)}')
+            if self._debug:
+                logging.warning(f'Failed Query: {qry}, {vals+(id_str,)}')
