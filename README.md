@@ -39,7 +39,7 @@ Tweetfeels relies on [VADER sentiment analysis](https://github.com/cjhutto/vader
     ```
 
 ### Additional Requirements
-1. You will need to obtain Twitter OAuth keys and supply them to tweetfeels in order to connect to Twitter's streaming API. Tweepy provides an excellent [tutorial](http://tweepy.readthedocs.io/en/v3.5.0/auth_tutorial.html#auth-tutorial) on how to obtain your keys.
+1. You will need to obtain Twitter OAuth keys and supply them to tweetfeels in order to connect to Twitter's streaming API. Go [here](https://twittercommunity.com/t/how-to-get-my-api-key/7033) for instructions on how to obtain your keys.
 
 2. Minimum python version of 3.6
 
