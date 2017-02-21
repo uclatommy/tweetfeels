@@ -141,7 +141,7 @@ Where ![f2] is the aggregate sentiment at time t and ![f3] is the sentiment scor
 
 Some tweets will also have a neutral score (0.0). In these cases, we exclude it from aggregation.
 
-[f1]: http://chart.apis.google.com/chart?cht=tx&chl=S_{t}=0.99(S_{t-1})%2B0.01(s_t)
+[f1]: http://chart.apis.google.com/chart?cht=tx&chl=S_{t}=0.99S_{t-1}%2B0.01s_t
 [f2]: http://chart.apis.google.com/chart?cht=tx&chl=S_t
 [f3]: http://chart.apis.google.com/chart?cht=tx&chl=s_t
 [f4]: http://chart.apis.google.com/chart?cht=tx&chl=S_0=0
