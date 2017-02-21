@@ -157,7 +157,7 @@ The trained dataset that comes with [vaderSentiment](https://github.com/cjhutto/
 | 1 | -0.5106 | RT @TEN_GOP: BREAKING: Massive riots happening now in Sweden. Stockholm in flames. Trump was right again! |
 | 2 | -0.8744 | RT @kurteichenwald: Intel shows our ally, Sweden, has no rise in crime. Trump saw on Fox it does. So he ignores intel, attacks our ally. ht… |
 | 3 | 0.7003 | RT @NoBoomGaming: I'm a glass half full kind of guy. Now that Trump won, think of all the new memes we'll have over the next four years! |
-| 4 | 0.9001 | RT @terrymendozer: Can we get a like for this cute Trump fan! Start them off young to love our country! #YoungPatriots… |
+| 4 | 0.6249 | RT @SandraTXAS: Nikki Haley is kicking a$$ at the UN👊💥💥 Trump made a great choice for envoy to the UN!! #Israel #MAGA |
 
 The first tweet is clearly voicing support for Donald Trump yet we get a negative score. The second tweet is clearly in opposition and it also produces a very negative sentiment. The fourth tweet is a case of sentiment aligning with approval. Clearly, sentiment scores should not be confused with ideological alignment or approval because it can go both ways! You can approve and make a negative comment and you can disapprove and make a positive sounding comment! Don't even get me started on sarcastic tweets (see third one).
 
