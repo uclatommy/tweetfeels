@@ -147,7 +147,7 @@ Some tweets will also have a neutral score (0.0). In these cases, we exclude it 
 [f4]: http://chart.apis.google.com/chart?cht=tx&chl=S_0=0
 
 ### Caveats
-The trained dataset that comes with [vaderSentiment](https://github.com/cjhutto/vaderSentiment) is optimized for social media, so it can the sentiment embedded in neologisms, internet shorthand, and even emoticons. However, it can only measure the aggregate sentiment value of a sentence or group of words. It does not measure whether or not a tweet agrees or disagrees with a particular ideology, political figure, or party. Although it is generally true that statements of disagreement will tend to have a negative sentiment. As an illustration, have a look at a few sentiment scores from the trump dataset:
+The trained dataset that comes with [vaderSentiment](https://github.com/cjhutto/vaderSentiment) is optimized for social media, so it can recognize the sentiment embedded in neologisms, internet shorthand, and even emoticons. However, it can only measure the aggregate sentiment value of a sentence or group of words. It does not measure whether or not a tweet agrees or disagrees with a particular ideology, political figure, or party. Although it is generally true that statements of disagreement will tend to have a negative sentiment. As an illustration, have a look at a few sentiment scores from the trump dataset:
 
 | | Sentiment | Tweet |
 | :---: | :--- | :--- |
