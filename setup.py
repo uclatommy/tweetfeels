@@ -15,7 +15,7 @@ setup(name='tweetfeels',
           'Natural Language :: English',
           'Programming Language :: Python :: 3.6',
           'Topic :: Scientific/Engineering :: Artificial Intelligence'
-          ]
+          ],
       install_requires=[
           'tweepy', 'h5py', 'nltk', 'numpy', 'oauthlib', 'pandas',
           'python-dateutil', 'pytz', 'requests', 'requests-oauthlib',
