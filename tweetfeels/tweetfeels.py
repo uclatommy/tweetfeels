@@ -93,6 +93,16 @@ class TweetFeels(object):
 
     @property
     def sentiment(self):
+        def avg_sentiment(df):
+            avg = 0
+            try:
+                avg = np.average(
+                    df.sentiment, weights=df.followers_count+df.friends_count
+                    )
+            except ZeroDivisionError:
+                avg = 0
+            return avg
+
         df = self._feels.queue
         if(len(df)>self.calc_every_n):
             df.sentiment = df.text.apply(self._intensity)
@@ -102,9 +112,7 @@ class TweetFeels(object):
                     )
             df = df.loc[df.sentiment != 0]  # drop rows having 0 sentiment
             df = df.groupby('created_at')
-            df = df.apply(
-                lambda x: np.average(x.sentiment, weights=x.followers_count)
-                )
+            df = df.apply(avg_sentiment)
             df = df.sort_index()
             for row in df.iteritems():
                 self._sentiment = self._sentiment*0.99 + row[1]*0.01
