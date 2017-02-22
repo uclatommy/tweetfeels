@@ -45,7 +45,7 @@ Tweetfeels relies on [VADER sentiment analysis](https://github.com/cjhutto/vader
 
 3. If for some reason pip did not install the vader lexicon:
     ```
-    > python -m nltk.downloader vader_lexicon
+    > python3 -m nltk.downloader vader_lexicon
     ```
 
 # Examples
