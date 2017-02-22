@@ -43,6 +43,11 @@ Tweetfeels relies on [VADER sentiment analysis](https://github.com/cjhutto/vader
 
 2. Minimum python version of 3.6
 
+3. If for some reason pip did not install the vader lexicon:
+```
+> python -m nltk.downloader vader_lexicon
+```
+
 # Examples
 *Note: Authorization keys in the examples are masked for privacy.*
 
