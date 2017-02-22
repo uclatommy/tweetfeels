@@ -13,14 +13,14 @@
      <img src="https://img.shields.io/badge/CLA-open-brightgreen.svg">
 </a>
 </p>
-## Introduction
+# Introduction
 Tweetfeels relies on [VADER sentiment analysis](https://github.com/cjhutto/vaderSentiment) to provide sentiment scores to user-defined topics. It does this by utilizing Twitter's streaming API to listen to real-time tweets around a particular topic. Some possible applications for this include:
 * Calculating the social sentiment of particular political figures or issues and analyzing scores across geographic regions.
 * Calculating sentiment scores for brands.
-* Using collected social sentiment scores in an artificial intelligence algorithm to determine stock market buy and sell recommendations.
+* Using sentiment scores as training features for a learning algorithm to determine stock buy and sell triggers.
 * And more!
 
-## Install Methods
+# Install Methods
 1. The easiest way is to install from PyPI:
     ```
     > pip3 install tweetfeels
@@ -38,12 +38,12 @@ Tweetfeels relies on [VADER sentiment analysis](https://github.com/cjhutto/vader
     > python3 setup.py install
     ```
 
-### Additional Requirements
+## Additional Requirements
 1. You will need to obtain Twitter OAuth keys and supply them to tweetfeels in order to connect to Twitter's streaming API. Go [here](https://twittercommunity.com/t/how-to-get-my-api-key/7033) for instructions on how to obtain your keys.
 
 2. Minimum python version of 3.6
 
-## Examples
+# Examples
 *Note: Authorization keys in the examples are masked for privacy.*
 
 For all examples, we use a few common boilerplate lines:
@@ -57,7 +57,7 @@ access_token_secret = '*********************************************'
 login = [consumer_key, consumer_secret, access_token, access_token_secret]
 ```
 
-1. Stream tweets related to keyword "Trump" for 10 seconds, then calculate a sentiment score for the last 10 seconds.
+#### Stream tweets related to keyword "Trump" for 10 seconds, then calculate a sentiment score for the last 10 seconds.
     ```python
     >>> trump_feels = TweetFeels(login, tracking=['trump'])
     >>> trump_feels.start(10)
@@ -66,7 +66,7 @@ login = [consumer_key, consumer_secret, access_token, access_token_secret]
     -0.0073007430343252711
     ```
 
-2. Stream tweets continuously and print current sentiment score every 10 seconds
+#### Stream tweets continuously and print current sentiment score every 10 seconds
     ```python
     >>> from threading import Thread
     >>> import time
@@ -116,7 +116,7 @@ login = [consumer_key, consumer_secret, access_token, access_token_secret]
     ```
     **Note:** Trump is an extremely high volume topic. We ran this for roughly 6 minutes and gathered nearly 15,000 tweets! For lower volume topics, you may want to poll the sentiment value less frequently than every 10 seconds.
 
-3. Stream tweets continuously for another topic and save to a different database.
+#### Stream tweets continuously for another topic and save to a different database.
     ```python
     >>> tesla_feels = TweetFeels(login, tracking=['tesla', 'tsla', 'gigafactory', 'elonmusk'], db='tesla.sqlite')
     >>> tesla_feels.calc_every_n = 10
@@ -133,7 +133,7 @@ login = [consumer_key, consumer_secret, access_token, access_token_secret]
     [Mon Feb 20 17:53:16 2017] Sentiment Score: 0.2485916177213093
     ```
 
-## Methodology
+# Methodology
 There are a multitude of ways in which you could combine hundreds or thousands of tweets across time in order to calculate a single sentiment score. One naive method might be to bin tweets into discretized time-boxes. For example, perhaps you average the individual sentiment scores every 10 seconds so that the current sentiment is the average over the last 10 seconds. In this method, your choice of discretization length is arbitrary and will have an impact on the perceived variance of the score. It also disregards any past sentiment calculations.
 
 To correct for these effects, we time-box every second and do not discard the sentiment from prior calculations. Instead, we phase out older tweet sentiments geometrically as we add in new tweets:
@@ -149,7 +149,7 @@ Some tweets will also have a neutral score (0.0). In these cases, we exclude it 
 [f3]: http://chart.apis.google.com/chart?cht=tx&chl=s_t
 [f4]: http://chart.apis.google.com/chart?cht=tx&chl=S_0=0
 
-### Caveats
+## Caveats
 The trained dataset that comes with [vaderSentiment](https://github.com/cjhutto/vaderSentiment) is optimized for social media, so it can recognize the sentiment embedded in neologisms, internet shorthand, and even emoticons. However, it can only measure the aggregate sentiment value of a sentence or group of words. It does not measure whether or not a tweet agrees or disagrees with a particular ideology, political figure, or party. Although it is generally true that statements of disagreement will tend to have a negative sentiment. As an illustration, have a look at a few sentiment scores from the trump dataset:
 
 | | Sentiment | Tweet |
