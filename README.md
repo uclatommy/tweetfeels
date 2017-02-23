@@ -63,80 +63,82 @@ login = [consumer_key, consumer_secret, access_token, access_token_secret]
 ```
 
 #### Stream tweets related to keyword "Trump" for 10 seconds, then calculate a sentiment score for the last 10 seconds.
-    ```python
-    >>> trump_feels = TweetFeels(login, tracking=['trump'])
-    >>> trump_feels.start(10)
-    Timer completed. Disconnecting now...
-    >>> trump_feels.sentiment
-    -0.0073007430343252711
-    ```
+```python
+>>> trump_feels = TweetFeels(login, tracking=['trump'])
+>>> trump_feels.start(10)
+Timer completed. Disconnecting now...
+>>> trump_feels.sentiment
+-0.0073007430343252711
+```
 
 #### Stream tweets continuously and print current sentiment score every 10 seconds
-    ```python
-    >>> from threading import Thread
-    >>> import time
-    >>>
-    >>> def print_feels(seconds=10):
-    ...     while go_on:
-    ...         time.sleep(seconds)
-    ...         print(f'[{time.ctime()}] Sentiment Score: {trump_feels.sentiment}')
-    ...
-    >>> go_on = True
-    >>> t = Thread(target=print_feels)
-    >>> trump_feels.start()
-    >>> t.start()
-    [Mon Feb 20 23:42:02 2017] Sentiment Score: -0.010528112416665309
-    [Mon Feb 20 23:42:13 2017] Sentiment Score: -0.007496043169013409
-    [Mon Feb 20 23:42:25 2017] Sentiment Score: -0.015294713038619036
-    [Mon Feb 20 23:42:36 2017] Sentiment Score: -0.030362951884842962
-    [Mon Feb 20 23:42:48 2017] Sentiment Score: -0.042087318872206333
-    [Mon Feb 20 23:42:59 2017] Sentiment Score: -0.041308681936680865
-    [Mon Feb 20 23:43:10 2017] Sentiment Score: -0.056203371039128994
-    [Mon Feb 20 23:43:22 2017] Sentiment Score: -0.07374769163753854
-    [Mon Feb 20 23:43:34 2017] Sentiment Score: -0.09549338153348486
-    [Mon Feb 20 23:43:46 2017] Sentiment Score: -0.10943157911799692
-    [Mon Feb 20 23:43:57 2017] Sentiment Score: -0.1406756546353098
-    [Mon Feb 20 23:44:08 2017] Sentiment Score: -0.12366467180485821
-    [Mon Feb 20 23:44:20 2017] Sentiment Score: -0.14460675229624026
-    [Mon Feb 20 23:44:32 2017] Sentiment Score: -0.13149386547613803
-    [Mon Feb 20 23:44:43 2017] Sentiment Score: -0.14568801433828418
-    [Mon Feb 20 23:44:55 2017] Sentiment Score: -0.14505295656838593
-    [Mon Feb 20 23:45:06 2017] Sentiment Score: -0.12853750933261338
-    [Mon Feb 20 23:45:17 2017] Sentiment Score: -0.11649611157554504
-    [Mon Feb 20 23:45:29 2017] Sentiment Score: -0.11382260762980569
-    [Mon Feb 20 23:45:40 2017] Sentiment Score: -0.11121839471955856
-    [Mon Feb 20 23:45:52 2017] Sentiment Score: -0.11083390577340985
-    [Mon Feb 20 23:46:03 2017] Sentiment Score: -0.10879727669948112
-    [Mon Feb 20 23:46:15 2017] Sentiment Score: -0.10137079133168492
-    [Mon Feb 20 23:46:26 2017] Sentiment Score: -0.10075971619875508
-    [Mon Feb 20 23:46:38 2017] Sentiment Score: -0.1194907722483259
-    [Mon Feb 20 23:46:49 2017] Sentiment Score: -0.1328795394197093
-    [Mon Feb 20 23:47:01 2017] Sentiment Score: -0.13734346200202507
-    [Mon Feb 20 23:47:12 2017] Sentiment Score: -0.1157629833027525
-    [Mon Feb 20 23:47:24 2017] Sentiment Score: -0.11030256885649424
-    [Mon Feb 20 23:47:35 2017] Sentiment Score: -0.12185876174059834
-    [Mon Feb 20 23:47:47 2017] Sentiment Score: -0.11323251979604802
-    [Mon Feb 20 23:47:58 2017] Sentiment Score: -0.11307793897469191
-    >>> trump_feels.stop()
-    ```
-    **Note:** Trump is an extremely high volume topic. We ran this for roughly 6 minutes and gathered nearly 15,000 tweets! For lower volume topics, you may want to poll the sentiment value less frequently than every 10 seconds.
+```python
+>>> from threading import Thread
+>>> import time
+>>>
+>>> def print_feels(seconds=10):
+...     while go_on:
+...         time.sleep(seconds)
+...         print(f'[{time.ctime()}] Sentiment Score: {trump_feels.sentiment}')
+...
+>>> go_on = True
+>>> t = Thread(target=print_feels)
+>>> trump_feels.start()
+>>> t.start()
+[Mon Feb 20 23:42:02 2017] Sentiment Score: -0.010528112416665309
+[Mon Feb 20 23:42:13 2017] Sentiment Score: -0.007496043169013409
+[Mon Feb 20 23:42:25 2017] Sentiment Score: -0.015294713038619036
+[Mon Feb 20 23:42:36 2017] Sentiment Score: -0.030362951884842962
+[Mon Feb 20 23:42:48 2017] Sentiment Score: -0.042087318872206333
+[Mon Feb 20 23:42:59 2017] Sentiment Score: -0.041308681936680865
+[Mon Feb 20 23:43:10 2017] Sentiment Score: -0.056203371039128994
+[Mon Feb 20 23:43:22 2017] Sentiment Score: -0.07374769163753854
+[Mon Feb 20 23:43:34 2017] Sentiment Score: -0.09549338153348486
+[Mon Feb 20 23:43:46 2017] Sentiment Score: -0.10943157911799692
+[Mon Feb 20 23:43:57 2017] Sentiment Score: -0.1406756546353098
+[Mon Feb 20 23:44:08 2017] Sentiment Score: -0.12366467180485821
+[Mon Feb 20 23:44:20 2017] Sentiment Score: -0.14460675229624026
+[Mon Feb 20 23:44:32 2017] Sentiment Score: -0.13149386547613803
+[Mon Feb 20 23:44:43 2017] Sentiment Score: -0.14568801433828418
+[Mon Feb 20 23:44:55 2017] Sentiment Score: -0.14505295656838593
+[Mon Feb 20 23:45:06 2017] Sentiment Score: -0.12853750933261338
+[Mon Feb 20 23:45:17 2017] Sentiment Score: -0.11649611157554504
+[Mon Feb 20 23:45:29 2017] Sentiment Score: -0.11382260762980569
+[Mon Feb 20 23:45:40 2017] Sentiment Score: -0.11121839471955856
+[Mon Feb 20 23:45:52 2017] Sentiment Score: -0.11083390577340985
+[Mon Feb 20 23:46:03 2017] Sentiment Score: -0.10879727669948112
+[Mon Feb 20 23:46:15 2017] Sentiment Score: -0.10137079133168492
+[Mon Feb 20 23:46:26 2017] Sentiment Score: -0.10075971619875508
+[Mon Feb 20 23:46:38 2017] Sentiment Score: -0.1194907722483259
+[Mon Feb 20 23:46:49 2017] Sentiment Score: -0.1328795394197093
+[Mon Feb 20 23:47:01 2017] Sentiment Score: -0.13734346200202507
+[Mon Feb 20 23:47:12 2017] Sentiment Score: -0.1157629833027525
+[Mon Feb 20 23:47:24 2017] Sentiment Score: -0.11030256885649424
+[Mon Feb 20 23:47:35 2017] Sentiment Score: -0.12185876174059834
+[Mon Feb 20 23:47:47 2017] Sentiment Score: -0.11323251979604802
+[Mon Feb 20 23:47:58 2017] Sentiment Score: -0.11307793897469191
+>>> trump_feels.stop()
+```
+    
+**Note:** Trump is an extremely high volume topic. We ran this for roughly 6 minutes and gathered nearly 15,000 tweets! For lower volume topics, you may want to poll the sentiment value less frequently than every 10 seconds.
 
 #### Stream tweets continuously for another topic and save to a different database.
-    ```python
-    >>> tesla_feels = TweetFeels(login, tracking=['tesla', 'tsla', 'gigafactory', 'elonmusk'], db='tesla.sqlite')
-    >>> tesla_feels.calc_every_n = 10
-    >>> t = Thread(target=print_feels, args=(tesla_feels, 120))
-    >>> tesla_feels.start()
-    >>> t.start()
-    [Mon Feb 20 17:39:15 2017] Sentiment Score: 0.03347735418362685
-    [Mon Feb 20 17:41:15 2017] Sentiment Score: 0.09408120307200825
-    [Mon Feb 20 17:43:15 2017] Sentiment Score: 0.12554072120979093
-    [Mon Feb 20 17:45:16 2017] Sentiment Score: 0.12381491277579157
-    [Mon Feb 20 17:47:16 2017] Sentiment Score: 0.17121666657137832
-    [Mon Feb 20 17:49:16 2017] Sentiment Score: 0.22588283902409384
-    [Mon Feb 20 17:51:16 2017] Sentiment Score: 0.23587583668725887
-    [Mon Feb 20 17:53:16 2017] Sentiment Score: 0.2485916177213093
-    ```
+    
+```python
+>>> tesla_feels = TweetFeels(login, tracking=['tesla', 'tsla', 'gigafactory', 'elonmusk'], db='tesla.sqlite')
+>>> tesla_feels.calc_every_n = 10
+>>> t = Thread(target=print_feels, args=(tesla_feels, 120))
+>>> tesla_feels.start()
+>>> t.start()
+[Mon Feb 20 17:39:15 2017] Sentiment Score: 0.03347735418362685
+[Mon Feb 20 17:41:15 2017] Sentiment Score: 0.09408120307200825
+[Mon Feb 20 17:43:15 2017] Sentiment Score: 0.12554072120979093
+[Mon Feb 20 17:45:16 2017] Sentiment Score: 0.12381491277579157
+[Mon Feb 20 17:47:16 2017] Sentiment Score: 0.17121666657137832
+[Mon Feb 20 17:49:16 2017] Sentiment Score: 0.22588283902409384
+[Mon Feb 20 17:51:16 2017] Sentiment Score: 0.23587583668725887
+[Mon Feb 20 17:53:16 2017] Sentiment Score: 0.2485916177213093
+```
 
 # Methodology
 There are a multitude of ways in which you could combine hundreds or thousands of tweets across time in order to calculate a single sentiment score. One naive method might be to bin tweets into discretized time-boxes. For example, perhaps you average the individual sentiment scores every 10 seconds so that the current sentiment is the average over the last 10 seconds. In this method, your choice of discretization length is arbitrary and will have an impact on the perceived variance of the score. It also disregards any past sentiment calculations.
