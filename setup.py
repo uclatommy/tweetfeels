@@ -1,13 +1,18 @@
 #from distutils.core import setup
 from setuptools import setup
 
+filename = 'tweetfeels/version.py'
+exec(compile(open(filename, "rb").read(), filename, 'exec'))
+
 setup(name='tweetfeels',
-      version='0.1.3',
+      version=__version__,
       description='Real-time sentiment analysis for twitter.',
       author='Thomas Chen',
       author_email='tkchen@gmail.com',
       url='https://github.com/uclatommy/tweetfeels',
-      download_url='https://github.com/uclatommy/tweetfeels/tarball/0.1.3',
+      download_url='https://github.com/uclatommy/tweetfeels/tarball/{}'.format(
+          __version__
+          ),
       packages=['tweetfeels'],
       classifiers=[
           'Development Status :: 4 - Beta',
@@ -19,10 +24,10 @@ setup(name='tweetfeels',
       install_requires=[
           'tweepy', 'h5py', 'nltk', 'numpy', 'oauthlib', 'pandas',
           'python-dateutil', 'pytz', 'requests', 'requests-oauthlib',
-          'six', 'twython'
+          'six', 'twython', 'vaderSentiment'
           ],
       dependency_links=[
-          'https://github.com/cjhutto/vaderSentiment/tarball/0.5'
+          'https://github.com/cjhutto/vaderSentiment/tarball/0.5#egg=vaderSentiment-0.5'
           ],
       test_suite='nose.collector',
       tests_require=['nose']
