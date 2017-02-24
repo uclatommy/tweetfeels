@@ -42,9 +42,11 @@ class Tweet(object):
 
 
 class TweetListener(StreamListener):
-    def __init__(self, on_data, on_error):
-        self._on_data = on_data
-        self._on_error = on_error
+    """
+    Expects the controller to implement the handler methods.
+    """
+    def __init__(self, controller):
+        self._controller = controller
 
     def on_data(self, data):
         dat = json.loads(data)
@@ -52,23 +54,35 @@ class TweetListener(StreamListener):
             for d in dat:
                 if 'created_at' in d:
                     twt = Tweet(d)
-                    if hasattr(self._on_data, '__call__'):
-                        self._on_data(twt)
+                    if hasattr(self._controller.on_data, '__call__'):
+                        self._controller.on_data(twt)
                 else:
                     continue
         else:
             if 'created_at' in dat:
                 twt = Tweet(dat)
-                if hasattr(self._on_data, '__call__'):
-                    self._on_data(twt)
+                if hasattr(self._controller.on_data, '__call__'):
+                    self._controller.on_data(twt)
         return True
 
     def on_error(self, status):
         print(status)
         ret = True
-        if hasattr(self._on_error, '__call__'):
-            ret = self._on_error(status)
+        if hasattr(self._controller.on_error, '__call__'):
+            ret = self._controller.on_error(status)
         if status == 420:
             #returning False in on_data disconnects the stream
             return False
         return ret
+
+    def on_disconnect(self, notice):
+        """Called when twitter sends a disconnect notice
+        Disconnect codes are listed here:
+        https://dev.twitter.com/docs/streaming-apis/messages#Disconnect_messages_disconnect
+        """
+        msg = json.loads(notice)
+        if msg['code'] == 4 or msg['code'] > 8:
+            time.sleep(60)
+            self._controller.start()
+        else:
+            print(f'Disconnected: {msg["code"]}: {msg["reason"]}')

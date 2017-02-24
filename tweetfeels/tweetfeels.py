@@ -35,10 +35,10 @@ class TweetFeels(object):
     :ivar lang: A list of languages to include in tweet gathering.
     """
     def __init__(self, credentials, tracking=[], db='feels.sqlite'):
-        self._listener = TweetListener(self.on_data, self.on_error)
         self._feels = TweetData(db)
         _auth = OAuthHandler(credentials[0], credentials[1])
         _auth.set_access_token(credentials[2], credentials[3])
+        self._listener = TweetListener(self)
         self._stream = Stream(_auth, self._listener)
         self.tracking = tracking
         self.lang = ['en']

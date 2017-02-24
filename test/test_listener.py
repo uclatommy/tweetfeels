@@ -1,6 +1,9 @@
 import unittest
+from unittest.mock import patch
+
 from tweetfeels import TweetListener
 from tweetfeels import Tweet
+
 import json
 
 
@@ -8,12 +11,14 @@ class Test_Listener(unittest.TestCase):
     def setUp(self):
         self.tweets_data_path = 'test/sample.json'
 
-    def test_listener(self):
-        tl = TweetListener(None, None)
+    @patch('tweetfeels.TweetFeels')
+    def test_listener(self, mock_feels):
+        tl = TweetListener(mock_feels)
         with open(self.tweets_data_path) as tweets_file:
             lines = filter(None, (line.rstrip() for line in tweets_file))
             for line in lines:
-                self.assertTrue(tl.on_data(line))
+                tl.on_data(line)
+                mock_feels.on_data.assert_called()
 
 class Test_Tweet(unittest.TestCase):
     def setUp(self):
