@@ -42,6 +42,10 @@ class Tweet(object):
 
 
 class TweetListener(StreamListener):
+    """
+    Listen's for tweets coming from twitter. Does some minimal processing
+    before passing data on to :class:`~tweetfeels.TweetFeels`.
+    """
     def __init__(self, on_data, on_error):
         self._on_data = on_data
         self._on_error = on_error
