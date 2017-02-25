@@ -24,10 +24,7 @@ setup(name='tweetfeels',
       install_requires=[
           'tweepy', 'h5py', 'nltk', 'numpy', 'oauthlib', 'pandas',
           'python-dateutil', 'pytz', 'requests', 'requests-oauthlib',
-          'six', 'twython', 'vaderSentiment'
-          ],
-      dependency_links=[
-          'https://github.com/cjhutto/vaderSentiment/tarball/0.5#egg=vaderSentiment-0.5'
+          'six', 'twython'
           ],
       test_suite='nose.collector',
       tests_require=['nose']

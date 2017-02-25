@@ -15,6 +15,7 @@ before_install:
 
 install:
   - pip3 install -r requirements.txt
+  - python3 -m nltk.downloader vader_lexicon
   - python3 setup.py install
   - pip3 install nose
 
