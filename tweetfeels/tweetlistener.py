@@ -47,6 +47,10 @@ class TweetListener(StreamListener):
     """
     def __init__(self, controller):
         self._controller = controller
+        self.waited = 0
+
+    def on_connect(self):
+        self.waited = 0
 
     def on_data(self, data):
         dat = json.loads(data)
@@ -67,22 +71,33 @@ class TweetListener(StreamListener):
 
     def on_error(self, status):
         print(status)
-        ret = True
+        if self.waited == 0:
+            if status == 420:
+                self.waited = 60
+            else:
+                self.waited = 5
+        self.reconnect_wait('exponential')
+
         if hasattr(self._controller.on_error, '__call__'):
             ret = self._controller.on_error(status)
-        if status == 420:
-            #returning False in on_data disconnects the stream
-            return False
-        return ret
+        return True
+
+    def reconnect_wait(self, pattern):
+        if pattern == 'linear':
+            time.sleep(self.waited)
+            self.waited += 1
+        elif pattern == 'exponential':
+            time.sleep(self.waited)
+            self.waited *= 2
 
     def on_disconnect(self, notice):
         """Called when twitter sends a disconnect notice
         Disconnect codes are listed here:
         https://dev.twitter.com/docs/streaming-apis/messages#Disconnect_messages_disconnect
         """
-        msg = json.loads(notice)
+        msg = json.loads(notice)['disconnect']
         if msg['code'] == 4 or msg['code'] > 8:
-            time.sleep(60)
+            self.reconnect_wait('linear')
             self._controller.start()
         else:
             print(f'Disconnected: {msg["code"]}: {msg["reason"]}')

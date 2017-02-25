@@ -89,7 +89,7 @@ class TweetFeels(object):
             self._feels.insert_tweet(data)
 
     def on_error(self, status):
-        pass
+        self.start()
 
     def _intensity(self, tweet):
         t = clean(tweet)

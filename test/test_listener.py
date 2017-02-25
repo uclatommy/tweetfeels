@@ -1,5 +1,5 @@
 import unittest
-from unittest.mock import patch
+from unittest.mock import patch, MagicMock
 
 from tweetfeels import TweetListener
 from tweetfeels import Tweet
@@ -10,6 +10,15 @@ import json
 class Test_Listener(unittest.TestCase):
     def setUp(self):
         self.tweets_data_path = 'test/sample.json'
+        self.disconnect_msg = """
+            {
+              "disconnect":{
+                "code": 4,
+                "stream_name":"",
+                "reason":""
+              }
+            }
+            """
 
     @patch('tweetfeels.TweetFeels')
     def test_listener(self, mock_feels):
@@ -19,6 +28,41 @@ class Test_Listener(unittest.TestCase):
             for line in lines:
                 tl.on_data(line)
                 mock_feels.on_data.assert_called()
+
+    @patch('tweetfeels.TweetFeels')
+    def test_on_disconnect(self, mock_feels):
+        tl = TweetListener(mock_feels)
+        tl.reconnect_wait = MagicMock()
+        tl.on_disconnect(self.disconnect_msg)
+        tl.reconnect_wait.assert_called_with('linear')
+        tl._controller.start.assert_called_once()
+
+    @patch('tweetfeels.TweetFeels')
+    def test_on_connect(self, mock_feels):
+        tl = TweetListener(mock_feels)
+        tl.waited = 60
+        tl.on_connect()
+        self.assertEqual(tl.waited, 0)
+
+    @patch('tweetfeels.TweetFeels')
+    def test_on_error(self, mock_feels):
+        tl = TweetListener(mock_feels)
+        tl.reconnect_wait = MagicMock()
+        tl.on_error(420)
+        tl.reconnect_wait.assert_called_with('exponential')
+        self.assertEqual(tl.waited, 60)
+        mock_feels.on_error.assert_called_with(420)
+
+    @patch('tweetfeels.TweetFeels')
+    def test_reconnect_wait(self, mock_feels):
+        tl = TweetListener(mock_feels)
+        tl.waited = 0.1
+        tl.reconnect_wait('linear')
+        self.assertEqual(tl.waited, 1.1)
+        tl.waited = 0.25
+        tl.reconnect_wait('exponential')
+        self.assertEqual(tl.waited, 0.5)
+
 
 class Test_Tweet(unittest.TestCase):
     def setUp(self):
