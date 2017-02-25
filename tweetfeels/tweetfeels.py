@@ -35,7 +35,10 @@ class TweetFeels(object):
     :ivar lang: A list of languages to include in tweet gathering.
     """
     _db_factory = (lambda db: TweetData(db))
-    _auth_factory = (lambda cred: OAuthHandler(cred[0], cred[1]).set_access_token(cred[2], cred[3]))
+    _auth_factory = (
+        lambda cred: OAuthHandler(cred[0], cred[1]
+            ).set_access_token(cred[2], cred[3])
+        )
     _listener_factory = (lambda ctrl: TweetListener(ctrl))
     _stream_factory = (lambda auth, listener: Stream(auth, listener))
 
@@ -94,6 +97,10 @@ class TweetFeels(object):
     def _intensity(self, tweet):
         t = clean(tweet)
         return SentimentIntensityAnalyzer().polarity_scores(t)['compound']
+
+    @property
+    def connected(self):
+        return self._stream.running
 
     @property
     def sentiment(self):
