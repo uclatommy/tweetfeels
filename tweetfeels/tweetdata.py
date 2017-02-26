@@ -23,15 +23,6 @@ class TweetData(object):
         c.close()
         return fields
 
-    @property
-    def queue(self):
-        conn = sqlite3.connect(self._db, detect_types=sqlite3.PARSE_DECLTYPES)
-        df = pd.read_sql_query(
-            'SELECT * FROM tweets WHERE sentiment is NULL', conn,
-            parse_dates=['created_at'], chunksize=self.chunksize
-            )
-        return df
-
     def tweets_since(self, dt):
         conn = sqlite3.connect(self._db, detect_types=sqlite3.PARSE_DECLTYPES)
         df = pd.read_sql_query(
@@ -66,10 +57,10 @@ class TweetData(object):
         friends_count   INTEGER,\
         followers_count INTEGER,\
         location        TEXT,\
-        sentiment       DOUBLE,\
-        pos             DOUBLE,\
-        neu             DOUBLE,\
-        neg             DOUBLE\
+        sentiment       DOUBLE                     NOT NULL,\
+        pos             DOUBLE                     NOT NULL,\
+        neu             DOUBLE                     NOT NULL,\
+        neg             DOUBLE                     NOT NULL\
         )'
         c.execute(tbl_def)
         c.close()
