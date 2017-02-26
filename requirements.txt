@@ -10,4 +10,4 @@ requests-oauthlib>=0.8.0
 six>=1.10.0
 tweepy>=3.5.0
 twython>=3.4.0
-vaderSentiment>=2.5
+nose

@@ -1,25 +1,14 @@
 import time
 from threading import Thread
+from collections import deque
 from nltk.sentiment.vader import SentimentIntensityAnalyzer
-from re import sub
-from tweepy import OAuthHandler
-from tweepy import Stream
-from tweetfeels import TweetData
-from tweetfeels import TweetListener
 import numpy as np
 
-
-def clean(text):
-    text = text.lower()
-    text = sub("[0-9]+", "number", text)
-    text = sub("#", "", text)
-    text = sub("\n", "", text)
-    text = text.replace('$', '@')
-    text = sub("@[^\s]+", "", text)
-    text = sub("(http|https)://[^\s]*", "", text)
-    text = sub("[^\s]+@[^\s]+", "", text)
-    text = sub('[^a-z A-Z]+', '', text)
-    return text
+from tweepy import (OAuthHandler,
+                    Stream)
+from tweetfeels import (TweetData,
+                        TweetListener)
+from tweetfeels.utils import clean
 
 
 class TweetFeels(object):
@@ -34,17 +23,27 @@ class TweetFeels(object):
                         in the queue.
     :ivar lang: A list of languages to include in tweet gathering.
     """
+    _db_factory = (lambda db: TweetData(db))
+    _auth_factory = (
+        lambda cred: OAuthHandler(cred[0], cred[1]
+            ).set_access_token(cred[2], cred[3])
+        )
+    _listener_factory = (lambda ctrl: TweetListener(ctrl))
+    _stream_factory = (lambda auth, listener: Stream(auth, listener))
+
     def __init__(self, credentials, tracking=[], db='feels.sqlite'):
-        self._listener = TweetListener(self.on_data, self.on_error)
-        self._feels = TweetData(db)
-        _auth = OAuthHandler(credentials[0], credentials[1])
-        _auth.set_access_token(credentials[2], credentials[3])
-        self._stream = Stream(_auth, self._listener)
+        self._feels = TweetFeels._db_factory(db)
+        _auth = TweetFeels._auth_factory(credentials)
+        self._listener = TweetFeels._listener_factory(self)
+        self._stream = TweetFeels._stream_factory(_auth, self._listener)
         self.tracking = tracking
         self.lang = ['en']
         self._sentiment = 0
         self._filter_level = 'low'
         self.calc_every_n = 10
+        self._latest_calc = None
+        self._tweet_buffer = deque()
+        self.buffer_limit = 50
 
     def start(self, seconds=None):
         def delayed_stop():
@@ -82,30 +81,46 @@ class TweetFeels(object):
         value = filter_value[data['filter_level']]
 
         if value >= filter_value[self._filter_level]:
-            self._feels.insert_tweet(data)
+            self._tweet_buffer.append(data)
+
+            if len(self._tweet_buffer) > self.buffer_limit:
+                t = Thread(target=self.clear_buffer)
+                t.start()
+
+    def clear_buffer(self):
+        while True:
+            try:
+                # The insert calculates sentiment values
+                self._feels.insert_tweet(self._tweet_buffer.popleft())
+            except IndexError:
+                break
 
     def on_error(self, status):
-        pass
+        self.start()
 
-    def _intensity(self, tweet):
-        t = clean(tweet)
-        return SentimentIntensityAnalyzer().polarity_scores(t)['compound']
+    @property
+    def connected(self):
+        return self._stream.running
 
     @property
     def sentiment(self):
-        df = self._feels.queue
-        if(len(df)>self.calc_every_n):
-            df.sentiment = df.text.apply(self._intensity)
-            for row in df.itertuples():
-                self._feels.update_tweet(
-                    {'id_str': row.id_str, 'sentiment': row.sentiment}
+        def avg_sentiment(df):
+            avg = 0
+            try:
+                avg = np.average(
+                    df.sentiment, weights=df.followers_count+df.friends_count
                     )
-            df = df.loc[df.sentiment != 0]  # drop rows having 0 sentiment
-            df = df.groupby('created_at')
-            df = df.apply(
-                lambda x: np.average(x.sentiment, weights=x.followers_count)
-                )
-            df = df.sort_index()
-            for row in df.iteritems():
-                self._sentiment = self._sentiment*0.99 + row[1]*0.01
+            except ZeroDivisionError:
+                avg = 0
+            return avg
+
+        dfs = self._feels.tweets_since(self._latest_calc)
+        for df in dfs:
+            if(len(df)>self.calc_every_n):
+                df = df.loc[df.sentiment != 0]  # drop rows having 0 sentiment
+                df = df.groupby('created_at')
+                df = df.apply(avg_sentiment)
+                df = df.sort_index()
+                for row in df.iteritems():
+                    self._sentiment = self._sentiment*0.99 + row[1]*0.01
         return self._sentiment
