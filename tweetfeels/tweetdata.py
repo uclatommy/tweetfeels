@@ -12,6 +12,7 @@ class TweetData(object):
         if not os.path.isfile(self._db):
             self.make_feels_db(self._db)
         self._debug = False
+        self.chunksize=1000
 
     @property
     def fields(self):
@@ -24,16 +25,28 @@ class TweetData(object):
 
     @property
     def queue(self):
-        conn = sqlite3.connect(self._db)
+        conn = sqlite3.connect(self._db, detect_types=sqlite3.PARSE_DECLTYPES)
         df = pd.read_sql_query(
-            'SELECT * FROM tweets WHERE sentiment is NULL', conn
+            'SELECT * FROM tweets WHERE sentiment is NULL', conn,
+            parse_dates=['created_at'], chunksize=self.chunksize
+            )
+        return df
+
+    def tweets_since(self, dt):
+        conn = sqlite3.connect(self._db, detect_types=sqlite3.PARSE_DECLTYPES)
+        df = pd.read_sql_query(
+            'SELECT * FROM tweets WHERE created_at > ?', conn, params=(dt,),
+            parse_dates=['created_at'], chunksize=self.chunksize
             )
         return df
 
     @property
     def all(self):
-        conn = sqlite3.connect(self._db)
-        df = pd.read_sql_query('SELECT * FROM tweets', conn)
+        conn = sqlite3.connect(self._db, detect_types=sqlite3.PARSE_DECLTYPES)
+        df = pd.read_sql_query(
+            'SELECT * FROM tweets', conn, parse_dates=['created_at'],
+            chunksize=self.chunksize
+            )
         return df
 
     def make_feels_db(self, filename='feels.sqlite'):
@@ -42,7 +55,7 @@ class TweetData(object):
         tbl_def = 'CREATE TABLE tweets(\
         id_str          CHARACTER(20)  PRIMARY KEY NOT NULL,\
         text            CHARACTER(140)             NOT NULL,\
-        created_at      TEXT                       NOT NULL,\
+        created_at      timestamp                  NOT NULL,\
         coordinates     VARCHAR(20),\
         favorite_count  INTEGER,\
         favorited       VARCHAR(5),\
@@ -53,7 +66,10 @@ class TweetData(object):
         friends_count   INTEGER,\
         followers_count INTEGER,\
         location        TEXT,\
-        sentiment       DOUBLE\
+        sentiment       DOUBLE,\
+        pos             DOUBLE,\
+        neu             DOUBLE,\
+        neg             DOUBLE\
         )'
         c.execute(tbl_def)
         c.close()
@@ -72,7 +88,9 @@ class TweetData(object):
         ins = ins + '?)'
         qry = f'INSERT OR IGNORE INTO tweets {keys} VALUES {ins}'
         try:
-            conn = sqlite3.connect(self._db)
+            conn = sqlite3.connect(
+                self._db, detect_types=sqlite3.PARSE_DECLTYPES
+                )
             c = conn.cursor()
             c.execute(qry, vals)
             c.close()
@@ -95,7 +113,9 @@ class TweetData(object):
 
         qry = f'UPDATE tweets SET {updt} WHERE id_str=?'
         try:
-            conn = sqlite3.connect(self._db)
+            conn = sqlite3.connect(
+                self._db, detect_types=sqlite3.PARSE_DECLTYPES
+                )
             c = conn.cursor()
             c.execute(qry, vals+(id_str,))
             c.close()

@@ -32,14 +32,16 @@ class Test_Data(unittest.TestCase):
                'id_str': '833394296418082817',
                'text': 'All the feels!'}
         t = Tweet(twt)
-        self.assertEqual(len(t.keys()), 3)
+        self.assertEqual(len(t.keys()), 7)
         self.feels_db.insert_tweet(t)
-        df = self.feels_db.queue
-        self.assertEqual(len(df), 1)
-        df.sentiment = 0.9
-        for row in df.itertuples():
-            self.feels_db.update_tweet(
-                {'id_str': row.id_str, 'sentiment': row.sentiment}
-                )
-        self.assertEqual(len(self.feels_db.queue), 0)
-        self.assertEqual(len(self.feels_db.all), 1)
+        dfs = self.feels_db.queue
+        for df in dfs:
+            self.assertEqual(len(df), 0)
+        dfs = self.feels_db.tweets_since(0)
+        for df in dfs:
+            self.assertEqual(len(df), 1)
+            df.sentiment = 0.9
+            for row in df.itertuples():
+                self.feels_db.update_tweet(
+                    {'id_str': row.id_str, 'sentiment': row.sentiment}
+                    )

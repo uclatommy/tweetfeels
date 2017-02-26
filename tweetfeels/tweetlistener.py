@@ -1,23 +1,29 @@
+from tweetfeels.utils import clean
 from tweepy.streaming import StreamListener
+from tweepy.utils import parse_datetime
+from nltk.sentiment.vader import SentimentIntensityAnalyzer
 import json
 import time
 
 
 class Tweet(object):
     """
-    Tweet object model.
+    Tweet object model. Access to tweet data works like a dict.
+
+    :param data: A dict converted from json string representation of a tweet.
     """
     def __init__(self, data):
         self._data = data
+        self._sentiment = None
         self._user_keys = (
             'followers_count', 'friends_count', 'location'
         )
+        self._sentiment_keys = (
+            'sentiment', 'pos', 'neu', 'neg'
+        )
         try:
-            ts = time.strftime(
-                '%Y-%m-%d %H:%M:%S',
-                time.strptime(data['created_at'], '%a %b %d %H:%M:%S +0000 %Y')
-                )
-            data['created_at'] = str(ts)
+            ts = parse_datetime(data['created_at'])
+            data['created_at'] = ts
         except KeyError:
             print(data)
             raise
@@ -31,11 +37,27 @@ class Tweet(object):
     def __getitem__(self, key):
         if key in self._user_keys:
             return self._data['user'][key]
+        elif key in self._sentiment_keys:
+            if key=='sentiment':
+                return self.sentiment['compound']
+            else:
+                return self.sentiment[key]
         else:
             return self._data[key]
 
+    def __str__(self):
+        return str({k: self[k] for k in self.keys()})
+
+    @property
+    def sentiment(self):
+        if self._sentiment is None:
+            t = clean(self._data['text'])
+            self._sentiment = SentimentIntensityAnalyzer().polarity_scores(t)
+        return self._sentiment
+
     def keys(self):
         k = tuple(self._data.keys())
+        k += self._sentiment_keys
         if 'user' in self._data:
             k += self._user_keys
         return k

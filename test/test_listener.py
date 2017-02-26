@@ -5,6 +5,7 @@ from tweetfeels import TweetListener
 from tweetfeels import Tweet
 
 import json
+from datetime import datetime
 
 
 class Test_Listener(unittest.TestCase):
@@ -76,8 +77,16 @@ class Test_Tweet(unittest.TestCase):
         self.assertEqual(self.tweet['followers_count'], 83)
         self.assertEqual(self.tweet['friends_count'], 303)
         self.assertTrue(len(self.tweet)>0)
-        self.assertEqual(self.tweet['created_at'], '2017-02-19 19:14:18')
+        dt = datetime(2017, 2, 19, 19, 14, 18)
+        self.assertEqual(self.tweet['created_at'], dt)
 
     def test_attributes(self):
-        self.assertEqual(len(self.tweet), 29)
+        self.assertEqual(len(self.tweet), 33)
         self.assertTrue('followers_count' in self.tweet)
+        self.assertTrue(isinstance(self.tweet['created_at'], datetime))
+
+    def test_sentiment(self):
+        self.assertEqual(self.tweet.sentiment['compound'], -0.2472)
+        self.assertEqual(self.tweet.sentiment['pos'], 0.087)
+        self.assertEqual(self.tweet.sentiment['neu'], 0.752)
+        self.assertEqual(self.tweet.sentiment['neg'], 0.161)

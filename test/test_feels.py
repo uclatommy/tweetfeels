@@ -1,7 +1,9 @@
 import unittest
 from unittest.mock import patch, MagicMock
+import json
 
 from tweetfeels import TweetFeels
+from tweetfeels import Tweet
 
 
 class Test_Feels(unittest.TestCase):
@@ -10,6 +12,7 @@ class Test_Feels(unittest.TestCase):
         TweetFeels._auth_factory = (lambda cred: MagicMock())
         TweetFeels._listener_factory = (lambda ctrl: MagicMock())
         TweetFeels._stream_factory = (lambda auth, listener: MagicMock())
+        self.tweets_data_path = 'test/sample.json'
 
     def test_start(self):
         mock_feels = TweetFeels("abcd")
@@ -27,16 +30,41 @@ class Test_Feels(unittest.TestCase):
 
     def test_on_data(self):
         mock_feels = TweetFeels("abcd")
+        mock_feels.buffer_limit = 0
         data = {'filter_level': 'low', 'text': 'test data'}
         mock_feels.on_data(data)
         mock_feels._feels.insert_tweet.assert_called_once()
 
+        # test filtering levels
         mock_feels2 = TweetFeels("abcd")
         mock_feels2._filter_level = 'medium'
         mock_feels2.on_data(data)
         mock_feels2._feels.insert_tweet.assert_not_called()
 
-    def test_intensity(self):
+        # test buffer limit. no inserts until we are over limit
+        mock_feels2.buffer_limit = 2
+        mock_feels2.filter_level = 'low'
+        mock_feels2.on_data(data)
+        mock_feels2._feels.insert_tweet.assert_not_called()
+        mock_feels2.on_data(data)
+        mock_feels2.on_data(data)
+        mock_feels._feels.insert_tweet.assert_called_once()
+
+    def test_compound(self):
         mock_feels = TweetFeels("abcd")
         tweet = "tweetfeels is the shit!"
-        self.assertTrue(mock_feels._intensity(tweet)>0)
+        self.assertTrue(mock_feels._compound(tweet)>0)
+
+    def test_buffer(self):
+        mock_feels = TweetFeels('abcd')
+        mock_feels.buffer_limit = 5
+        with open(self.tweets_data_path) as tweets_file:
+            lines = list(filter(None, (line.rstrip() for line in tweets_file)))
+            for line in lines[0:3]:
+                t = Tweet(json.loads(line))
+                mock_feels.on_data(t)
+            self.assertEqual(len(mock_feels._tweet_buffer), 3)
+            for line in lines[3:6]:
+                t = Tweet(json.loads(line))
+                mock_feels.on_data(t)
+            self.assertTrue(len(mock_feels._tweet_buffer)<5)
