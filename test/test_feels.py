@@ -1,9 +1,10 @@
 import unittest
 from unittest.mock import patch, MagicMock
 import json
+import os
+import time
 
-from tweetfeels import TweetFeels
-from tweetfeels import Tweet
+from tweetfeels import (TweetFeels, Tweet, TweetData)
 
 
 class Test_Feels(unittest.TestCase):
@@ -59,6 +60,8 @@ class Test_Feels(unittest.TestCase):
     def test_buffer(self):
         mock_feels = TweetFeels('abcd')
         mock_feels.buffer_limit = 5
+        feels_db = TweetData(file='sample.sqlite')
+        mock_feels._feels = feels_db
         with open(self.tweets_data_path) as tweets_file:
             lines = list(filter(None, (line.rstrip() for line in tweets_file)))
             for line in lines[0:3]:
@@ -68,4 +71,8 @@ class Test_Feels(unittest.TestCase):
             for line in lines[3:6]:
                 t = Tweet(json.loads(line))
                 mock_feels.on_data(t)
-            self.assertTrue(len(mock_feels._tweet_buffer)<5)
+            time.sleep(1) #this waits for items to finish popping off the buffer
+            self.assertEqual(len(mock_feels._tweet_buffer), 0)
+            dfs = [df for df in mock_feels._feels.all]
+            self.assertEqual(len(dfs[0]), 6)
+        os.remove('sample.sqlite')
