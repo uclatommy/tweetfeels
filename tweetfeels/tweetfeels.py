@@ -93,10 +93,6 @@ class TweetFeels(object):
     def on_error(self, status):
         self.start()
 
-    def _compound(self, tweet):
-        t = clean(tweet)
-        return SentimentIntensityAnalyzer().polarity_scores(t)['compound']
-
     @property
     def connected(self):
         return self._stream.running
@@ -113,14 +109,9 @@ class TweetFeels(object):
                 avg = 0
             return avg
 
-        dfs = self._feels.queue
+        dfs = self._feels.tweets_since(self._latest_calc)
         for df in dfs:
             if(len(df)>self.calc_every_n):
-                df.sentiment = df.text.apply(self._compound)
-                for row in df.itertuples():
-                    self._feels.update_tweet(
-                        {'id_str': row.id_str, 'sentiment': row.sentiment}
-                        )
                 df = df.loc[df.sentiment != 0]  # drop rows having 0 sentiment
                 df = df.groupby('created_at')
                 df = df.apply(avg_sentiment)

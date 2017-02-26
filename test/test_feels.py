@@ -50,10 +50,11 @@ class Test_Feels(unittest.TestCase):
         mock_feels2.on_data(data)
         mock_feels._feels.insert_tweet.assert_called_once()
 
-    def test_compound(self):
+    def test_sentiment(self):
         mock_feels = TweetFeels("abcd")
-        tweet = "tweetfeels is the shit!"
-        self.assertTrue(mock_feels._compound(tweet)>0)
+        mock_feels._feels.tweets_since = MagicMock(return_value=[])
+        mock_feels._sentiment = 0.5
+        self.assertEqual(mock_feels.sentiment, 0.5)
 
     def test_buffer(self):
         mock_feels = TweetFeels('abcd')

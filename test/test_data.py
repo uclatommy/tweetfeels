@@ -1,6 +1,7 @@
 import unittest
 from tweetfeels import TweetData
 from tweetfeels import Tweet
+from datetime import datetime
 import json
 import os
 
@@ -34,7 +35,7 @@ class Test_Data(unittest.TestCase):
         t = Tweet(twt)
         self.assertEqual(len(t.keys()), 7)
         self.feels_db.insert_tweet(t)
-        dfs = self.feels_db.queue
+        dfs = self.feels_db.tweets_since(datetime.now())
         for df in dfs:
             self.assertEqual(len(df), 0)
         dfs = self.feels_db.tweets_since(0)

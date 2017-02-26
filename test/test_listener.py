@@ -60,9 +60,10 @@ class Test_Listener(unittest.TestCase):
         tl.waited = 0.1
         tl.reconnect_wait('linear')
         self.assertEqual(tl.waited, 1.1)
-        tl.waited = 0.25
+        tl.waited = 0.1
         tl.reconnect_wait('exponential')
-        self.assertEqual(tl.waited, 0.5)
+        tl.reconnect_wait('exponential')
+        self.assertEqual(tl.waited, 0.4)
 
 
 class Test_Tweet(unittest.TestCase):
