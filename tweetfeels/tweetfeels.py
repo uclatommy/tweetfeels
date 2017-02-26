@@ -1,5 +1,6 @@
 import time
 from threading import Thread
+from collections import deque
 from nltk.sentiment.vader import SentimentIntensityAnalyzer
 import numpy as np
 
@@ -41,7 +42,7 @@ class TweetFeels(object):
         self._filter_level = 'low'
         self.calc_every_n = 10
         self._latest_calc = None
-        self._tweet_buffer = []
+        self._tweet_buffer = deque()
         self.buffer_limit = 50
 
     def start(self, seconds=None):
@@ -87,8 +88,12 @@ class TweetFeels(object):
                 t.start()
 
     def clear_buffer(self):
-        while len(self._tweet_buffer) > 0:
-            self._feels.insert_tweet(self._tweet_buffer.pop(0))
+        while True:
+            try:
+                # The insert calculates sentiment values
+                self._feels.insert_tweet(self._tweet_buffer.popleft())
+            except IndexError:
+                break
 
     def on_error(self, status):
         self.start()
