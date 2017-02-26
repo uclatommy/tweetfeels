@@ -24,16 +24,13 @@ class TweetFeels(object):
     :ivar lang: A list of languages to include in tweet gathering.
     """
     _db_factory = (lambda db: TweetData(db))
-    _auth_factory = (
-        lambda cred: OAuthHandler(cred[0], cred[1]
-            ).set_access_token(cred[2], cred[3])
-        )
     _listener_factory = (lambda ctrl: TweetListener(ctrl))
     _stream_factory = (lambda auth, listener: Stream(auth, listener))
 
     def __init__(self, credentials, tracking=[], db='feels.sqlite'):
         self._feels = TweetFeels._db_factory(db)
-        _auth = TweetFeels._auth_factory(credentials)
+        _auth = OAuthHandler(credentials[0], credentials[1])
+        _auth.set_access_token(credentials[2], credentials[3])
         self._listener = TweetFeels._listener_factory(self)
         self._stream = TweetFeels._stream_factory(_auth, self._listener)
         self.tracking = tracking
@@ -41,7 +38,7 @@ class TweetFeels(object):
         self._sentiment = 0
         self._filter_level = 'low'
         self.calc_every_n = 10
-        self._latest_calc = None
+        self._latest_calc = 0
         self._tweet_buffer = deque()
         self.buffer_limit = 50
 
@@ -123,4 +120,5 @@ class TweetFeels(object):
                 df = df.sort_index()
                 for row in df.iteritems():
                     self._sentiment = self._sentiment*0.99 + row[1]*0.01
+                self._latest_calc = df.tail(1).index.to_pydatetime()[0]
         return self._sentiment

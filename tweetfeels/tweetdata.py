@@ -13,10 +13,11 @@ class TweetData(object):
             self.make_feels_db(self._db)
         self._debug = False
         self.chunksize=1000
+        self.fields = self._fields
 
     @property
-    def fields(self):
-        conn = sqlite3.connect(self._db)
+    def _fields(self):
+        conn = sqlite3.connect(self._db, detect_types=sqlite3.PARSE_DECLTYPES)
         c = conn.cursor()
         c.execute("select * from tweets")
         fields=tuple([f[0] for f in c.description])
