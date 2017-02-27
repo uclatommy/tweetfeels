@@ -66,12 +66,6 @@ class TweetData(object):
         c.execute(tbl_def)
         c.close()
 
-    def scrub(self, item):
-        if isinstance(item, dict):
-            return str(item)
-        else:
-            return item
-
     def insert_tweet(self, tweet):
         keys = tuple([k for k in tweet.keys() if k in self.fields])
         vals = tuple([tweet[k] for k in keys])

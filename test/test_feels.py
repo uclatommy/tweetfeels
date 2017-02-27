@@ -3,6 +3,7 @@ from unittest.mock import patch, MagicMock
 import json
 import os
 import time
+import numpy as np
 
 from tweetfeels import (TweetFeels, Tweet, TweetData)
 
@@ -14,6 +15,26 @@ class Test_Feels(unittest.TestCase):
         TweetFeels._listener_factory = (lambda ctrl: MagicMock())
         TweetFeels._stream_factory = (lambda auth, listener: MagicMock())
         self.tweets_data_path = 'test/sample.json'
+        self.tweets = [
+            {'created_at': 'Sun Feb 19 19:14:18 +0000 2017',
+             'id_str': '833394296418082817',
+             'text': 'Tweetfeels is tremendous! Believe me. I know.',
+             'user': {'followers_count': '100', 'friends_count': '200',
+                      'location':None}
+            }, # sentiment value = 0
+            {'created_at': 'Sun Feb 19 19:14:19 +0000 2017',
+             'id_str': '833394296418082818',
+             'text': 'Fake news. Sad!',
+             'user': {'followers_count': '100', 'friends_count': '200',
+                      'location':None}
+            }, # sentiment value = -0.7351
+            {'created_at': 'Sun Feb 19 19:14:20 +0000 2017',
+             'id_str': '833394296418082819',
+             'text': 'I hate it.',
+             'user': {'followers_count': '100', 'friends_count': '200',
+                      'location':None}
+            } # sentiment value = -0.5719
+            ]
 
     def test_start(self):
         mock_feels = TweetFeels("abcd")
@@ -76,3 +97,21 @@ class Test_Feels(unittest.TestCase):
             dfs = [df for df in mock_feels._feels.all]
             self.assertEqual(len(dfs[0]), 6)
         os.remove('sample.sqlite')
+
+    def test_sentiment_comprehensive(self):
+        mock_feels = TweetFeels('abcd')
+        feels_db = TweetData(file='./test/db.sqlite')
+        mock_feels._feels = feels_db
+        tweets = [Tweet(t) for t in self.tweets]
+        sentiment = 0.0
+        for t in tweets:
+            feels_db.insert_tweet(t)
+            if t['sentiment']!=0:
+                print(f'0.99*{sentiment} + 0.01*{t["sentiment"]}')
+                sentiment = 0.99*sentiment + 0.01*t['sentiment']
+                print(f'sentiment = {sentiment}')
+        mock_feels.clear_buffer()
+        mock_feels.calc_every_n = 1
+        # calc = 0*0.99**2 + 0.01*0.99*-0.7531 + 0.01*-0.5719
+        #      = -0.01299649
+        self.assertEqual(mock_feels.sentiment, sentiment)

@@ -23,11 +23,6 @@ class Test_Data(unittest.TestCase):
         self.assertTrue(isinstance(f, tuple))
         self.assertTrue(len(f)>=11)
 
-    def test_scrub(self):
-        data = {'a':1, 'b':2}
-        scrubbed = self.feels_db.scrub(data)
-        self.assertTrue(isinstance(scrubbed, str))
-
     def test_data_operation(self):
         twt = {'created_at': 'Sun Feb 19 19:14:18 +0000 2017',
                'id_str': '833394296418082817',
