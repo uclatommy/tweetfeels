@@ -5,7 +5,12 @@ import logging
 
 class TweetData(object):
     """
-    Abstraction of data store.
+    Models the tweet database.
+
+    :param file: The sqlite3 file to store data
+    :ivar chunksize: The chunksize to use for all dataframe data retrievals
+    :ivar fields: A list of tweet data fields defined by the database
+    :ivar all: A coroutine that yields dataframes chunked by ``chunksize``.
     """
     def __init__(self, file='feels.sqlite'):
         self._db = file
@@ -25,6 +30,12 @@ class TweetData(object):
         return fields
 
     def tweets_since(self, dt):
+        """
+        Retrieves all tweets since a particular datetime as a coroutine that
+        iterates on ``chunksize``.
+
+        :param dt: The starting datetime to query from.
+        """
         conn = sqlite3.connect(self._db, detect_types=sqlite3.PARSE_DECLTYPES)
         df = pd.read_sql_query(
             'SELECT * FROM tweets WHERE created_at > ?', conn, params=(dt,),
@@ -42,6 +53,11 @@ class TweetData(object):
         return df
 
     def make_feels_db(self, filename='feels.sqlite'):
+        """
+        Initializes an sqlite3 database with predefined columns.
+
+        :param filename: The database file to create. Will overwrite!
+        """
         conn = sqlite3.connect(filename)
         c = conn.cursor()
         tbl_def = 'CREATE TABLE tweets(\
@@ -67,6 +83,11 @@ class TweetData(object):
         c.close()
 
     def insert_tweet(self, tweet):
+        """
+        Inserts a tweet into the database.
+
+        :param tweet: The :class:`Tweet` to insert
+        """
         keys = tuple([k for k in tweet.keys() if k in self.fields])
         vals = tuple([tweet[k] for k in keys])
         ins = '('
@@ -86,6 +107,11 @@ class TweetData(object):
                 logging.warning(f'Failed Query: {qry}, {vals}')
 
     def update_tweet(self, tweet):
+        """
+        Updates a tweet already in the database.
+
+        :param tweet: The :class:`Tweet` to update.
+        """
         id_str = tweet['id_str']
         buf = [k for k in tweet.keys() if k!='id_str']
         vals = tuple([tweet[k] for k in buf])
