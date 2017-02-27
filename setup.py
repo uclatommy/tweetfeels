@@ -1,5 +1,12 @@
 #from distutils.core import setup
 from setuptools import setup
+import os
+
+try:
+    import pypandoc
+    long_description = pypandoc.convert('README.md', 'rst')
+except(IOError, ImportError):
+    long_description = 'Real-time sentiment analysis for twitter.'
 
 filename = 'tweetfeels/version.py'
 exec(compile(open(filename, "rb").read(), filename, 'exec'))
@@ -7,6 +14,7 @@ exec(compile(open(filename, "rb").read(), filename, 'exec'))
 setup(name='tweetfeels',
       version=__version__,
       description='Real-time sentiment analysis for twitter.',
+      long_description=long_description,
       author='Thomas Chen',
       author_email='tkchen@gmail.com',
       url='https://github.com/uclatommy/tweetfeels',
