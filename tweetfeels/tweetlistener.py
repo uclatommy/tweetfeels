@@ -11,6 +11,7 @@ class Tweet(object):
     Tweet object model. Access to tweet data works like a dict.
 
     :param data: A dict converted from json string representation of a tweet.
+    :ivar sentiment: A dict of sentiment values at all dimensions
     """
     def __init__(self, data):
         self._data = data
@@ -56,6 +57,9 @@ class Tweet(object):
         return self._sentiment
 
     def keys(self):
+        """
+        Returns a list of valid tweet data keys.
+        """
         k = tuple(self._data.keys())
         k += self._sentiment_keys
         if 'user' in self._data:
@@ -65,16 +69,28 @@ class Tweet(object):
 
 class TweetListener(StreamListener):
     """
-    Expects the controller to implement the handler methods.
+    A handler object for Twitter's stream data. Takes care of reconnections
+    automatically.
+
+    :param controller: A TweetFeels object that determines what to do with
+                       incoming tweets.
     """
     def __init__(self, controller):
         self._controller = controller
-        self.waited = 0
+        self._waited = 0
 
     def on_connect(self):
-        self.waited = 0
+        """
+        Called after a successfull connect.
+        """
+        self._waited = 0
 
     def on_data(self, data):
+        """
+        Called when successfully recieved incoming tweet data.
+
+        :param data: Raw json data from twitter stream.
+        """
         dat = json.loads(data)
         if isinstance(dat, list):
             for d in dat:
@@ -92,12 +108,18 @@ class TweetListener(StreamListener):
         return True
 
     def on_error(self, status):
+        """
+        Called when an http error occurs.
+
+        :param status: An error code. Code definitions are here:
+                       https://dev.twitter.com/streaming/overview/connecting
+        """
         print(status)
-        if self.waited == 0:
+        if self._waited == 0:
             if status == 420:
-                self.waited = 60
+                self._waited = 60
             else:
-                self.waited = 5
+                self._waited = 5
         self.reconnect_wait('exponential')
 
         if hasattr(self._controller.on_error, '__call__'):
@@ -105,15 +127,22 @@ class TweetListener(StreamListener):
         return True
 
     def reconnect_wait(self, pattern):
+        """
+        Calculates an appropriate waiting time prior to attempting reconnect.
+
+        :param pattern: The type of reconnect waiting pattern dependent on type
+                        of error or disconnect.
+        """
         if pattern == 'linear':
-            time.sleep(self.waited)
-            self.waited += 1
+            time.sleep(self._waited)
+            self._waited += 1
         elif pattern == 'exponential':
-            time.sleep(self.waited)
-            self.waited *= 2
+            time.sleep(self._waited)
+            self._waited *= 2
 
     def on_disconnect(self, notice):
-        """Called when twitter sends a disconnect notice
+        """
+        Called when twitter sends a disconnect notice
         Disconnect codes are listed here:
         https://dev.twitter.com/docs/streaming-apis/messages#Disconnect_messages_disconnect
         """

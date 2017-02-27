@@ -41,9 +41,9 @@ class Test_Listener(unittest.TestCase):
     @patch('tweetfeels.TweetFeels')
     def test_on_connect(self, mock_feels):
         tl = TweetListener(mock_feels)
-        tl.waited = 60
+        tl._waited = 60
         tl.on_connect()
-        self.assertEqual(tl.waited, 0)
+        self.assertEqual(tl._waited, 0)
 
     @patch('tweetfeels.TweetFeels')
     def test_on_error(self, mock_feels):
@@ -51,19 +51,19 @@ class Test_Listener(unittest.TestCase):
         tl.reconnect_wait = MagicMock()
         tl.on_error(420)
         tl.reconnect_wait.assert_called_with('exponential')
-        self.assertEqual(tl.waited, 60)
+        self.assertEqual(tl._waited, 60)
         mock_feels.on_error.assert_called_with(420)
 
     @patch('tweetfeels.TweetFeels')
     def test_reconnect_wait(self, mock_feels):
         tl = TweetListener(mock_feels)
-        tl.waited = 0.1
+        tl._waited = 0.1
         tl.reconnect_wait('linear')
-        self.assertEqual(tl.waited, 1.1)
-        tl.waited = 0.1
+        self.assertEqual(tl._waited, 1.1)
+        tl._waited = 0.1
         tl.reconnect_wait('exponential')
         tl.reconnect_wait('exponential')
-        self.assertEqual(tl.waited, 0.4)
+        self.assertEqual(tl._waited, 0.4)
 
 
 class Test_Tweet(unittest.TestCase):
