@@ -118,3 +118,6 @@ class Test_Feels(unittest.TestCase):
         self.assertEqual(mock_feels.sentiment, sentiment)
         dt = datetime(2017, 2, 19, 19, 14, 20)
         self.assertEqual(mock_feels._latest_calc, dt)
+
+    def test_sentiments(self):
+        pass

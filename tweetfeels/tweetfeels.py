@@ -124,14 +124,30 @@ class TweetFeels(object):
         """
         self.start()
 
-    def sentiments(self, delta_time, start):
+    def sentiments(self, start, delta_time):
         """
         Provides a generator for sentiment values in ``delta_time`` increments.
 
-        :param delta_time: The time length that each sentiment value represents.
         :param start: The start time at which the generator yeilds a value.
+        :type start: datetime
+        :param delta_time: The time length that each sentiment value represents.
+        :type delta_time: timedelta
         """
-        pass
+        self._sentiment = 0
+        self._latest_calc = 0
+        end = datetime.now()
+        dfs = self.tweets_between(self._latest_calc, start)
+        for df in dfs:
+            self._sentiment = self.model_sentiment(df, self._sentiment)
+        stop = False
+        while self._latest_calc < end or stop:
+            dfs = self.tweets_between(
+                self._latest_calc, self._latest_calc + delta_time
+                )
+            for df in dfs:
+                self._sentiment = self.model_sentiment(df, self._sentiment)
+            yield self._sentiment
+
 
     def model_sentiment(self, df, start):
         """
@@ -150,14 +166,15 @@ class TweetFeels(object):
                 avg = 0
             return avg
 
-        df = df.loc[df.sentiment != 0]  # drop rows having 0 sentiment
-        df = df.groupby('created_at')
-        df = df.apply(avg_sentiment)
-        df = df.sort_index()
-        self._sentiment = start
-        for row in df.iteritems():
-            self._sentiment = self._sentiment*0.99 + row[1]*0.01
-        self._latest_calc = df.tail(1).index.to_pydatetime()[0]
+        if(len(df)>self.calc_every_n):
+            df = df.loc[df.sentiment != 0]  # drop rows having 0 sentiment
+            df = df.groupby('created_at')
+            df = df.apply(avg_sentiment)
+            df = df.sort_index()
+            self._sentiment = start
+            for row in df.iteritems():
+                self._sentiment = self._sentiment*0.99 + row[1]*0.01
+            self._latest_calc = df.tail(1).index.to_pydatetime()[0]
         return self._sentiment
 
     @property
@@ -168,6 +185,5 @@ class TweetFeels(object):
     def sentiment(self):
         dfs = self._feels.tweets_since(self._latest_calc)
         for df in dfs:
-            if(len(df)>self.calc_every_n):
-                self._sentiment = self.model_sentiment(df, self._sentiment)
+            self._sentiment = self.model_sentiment(df, self._sentiment)
         return self._sentiment
