@@ -31,7 +31,7 @@ class TweetData(object):
 
     def tweets_since(self, dt):
         """
-        Retrieves all tweets since a particular datetime as a coroutine that
+        Retrieves all tweets since a particular datetime as a generator that
         iterates on ``chunksize``.
 
         :param dt: The starting datetime to query from.
@@ -40,6 +40,24 @@ class TweetData(object):
         df = pd.read_sql_query(
             'SELECT * FROM tweets WHERE created_at > ?', conn, params=(dt,),
             parse_dates=['created_at'], chunksize=self.chunksize
+            )
+        return df
+
+    def tweets_between(self, start, end):
+        """
+        Retrieve tweets between the start and and datetimes. Returns a generator
+        that iterates on ``chunksize``.
+
+        :param start: The start of the search range.
+        :type start: datetime
+        :param end: The end of the search range.
+        :type end: datetime
+        """
+        conn = sqlite3.connect(self._db, detect_types=sqlite3.PARSE_DECLTYPES)
+        df = pd.read_sql_query(
+            'SELECT * FROM tweets WHERE created_at > ? AND created_at <= ?',
+            conn, params=(start, end), parse_dates=['created_at'],
+            chunksize=self.chunksize
             )
         return df
 

@@ -41,3 +41,14 @@ class Test_Data(unittest.TestCase):
                 self.feels_db.update_tweet(
                     {'id_str': row.id_str, 'sentiment': row.sentiment}
                     )
+
+        start = datetime(2017, 2, 17, 0, 0, 0)
+        before = datetime(2017, 2, 18, 0, 0, 0)
+        after = datetime(2017, 2, 20, 0, 0, 0)
+        dfs = self.feels_db.tweets_between(start, before)
+        for df in dfs:
+            self.assertEqual(len(df), 0)
+
+        dfs = self.feels_db.tweets_between(start, after)
+        for df in dfs:
+            self.assertEqual(len(df), 1)
