@@ -124,12 +124,22 @@ class TweetFeels(object):
         """
         self.start()
 
-    @property
-    def connected(self):
-        return self._stream.running
+    def sentiments(self, delta_time, start):
+        """
+        Provides a generator for sentiment values in ``delta_time`` increments.
 
-    @property
-    def sentiment(self):
+        :param delta_time: The time length that each sentiment value represents.
+        :param start: The start time at which the generator yeilds a value.
+        """
+        pass
+
+    def model_sentiment(self, df, start):
+        """
+        Defines the real-time sentiment model given a dataframe of tweets.
+
+        :param df: A tweets dataframe.
+        :param start: The starting sentiment value to begin calculation.
+        """
         def avg_sentiment(df):
             avg = 0
             try:
@@ -140,14 +150,24 @@ class TweetFeels(object):
                 avg = 0
             return avg
 
+        df = df.loc[df.sentiment != 0]  # drop rows having 0 sentiment
+        df = df.groupby('created_at')
+        df = df.apply(avg_sentiment)
+        df = df.sort_index()
+        self._sentiment = start
+        for row in df.iteritems():
+            self._sentiment = self._sentiment*0.99 + row[1]*0.01
+        self._latest_calc = df.tail(1).index.to_pydatetime()[0]
+        return self._sentiment
+
+    @property
+    def connected(self):
+        return self._stream.running
+
+    @property
+    def sentiment(self):
         dfs = self._feels.tweets_since(self._latest_calc)
         for df in dfs:
             if(len(df)>self.calc_every_n):
-                df = df.loc[df.sentiment != 0]  # drop rows having 0 sentiment
-                df = df.groupby('created_at')
-                df = df.apply(avg_sentiment)
-                df = df.sort_index()
-                for row in df.iteritems():
-                    self._sentiment = self._sentiment*0.99 + row[1]*0.01
-                self._latest_calc = df.tail(1).index.to_pydatetime()[0]
+                self._sentiment = self.model_sentiment(df, self._sentiment)
         return self._sentiment

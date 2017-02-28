@@ -4,6 +4,7 @@ import json
 import os
 import time
 import numpy as np
+from datetime import datetime
 
 from tweetfeels import (TweetFeels, Tweet, TweetData)
 
@@ -115,3 +116,5 @@ class Test_Feels(unittest.TestCase):
         # calc = 0*0.99**2 + 0.01*0.99*-0.7531 + 0.01*-0.5719
         #      = -0.01299649
         self.assertEqual(mock_feels.sentiment, sentiment)
+        dt = datetime(2017, 2, 19, 19, 14, 20)
+        self.assertEqual(mock_feels._latest_calc, dt)
