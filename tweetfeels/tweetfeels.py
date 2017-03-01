@@ -1,4 +1,5 @@
 import time
+from datetime import datetime
 from threading import Thread
 from collections import deque
 from nltk.sentiment.vader import SentimentIntensityAnalyzer
@@ -124,12 +125,39 @@ class TweetFeels(object):
         """
         self.start()
 
-    @property
-    def connected(self):
-        return self._stream.running
+    def sentiments(self, start, delta_time):
+        """
+        Provides a generator for sentiment values in ``delta_time`` increments.
 
-    @property
-    def sentiment(self):
+        :param start: The start time at which the generator yeilds a value.
+        :type start: datetime
+        :param delta_time: The time length that each sentiment value represents.
+        :type delta_time: timedelta
+        """
+        self._sentiment = 0
+        self._latest_calc = datetime(1900, 1, 1, 0, 0, 0)
+        end = datetime.now()
+        dfs = self._feels.tweets_between(self._latest_calc, start)
+        for df in dfs:
+            self._sentiment = self.model_sentiment(df, self._sentiment)
+        self._latest_calc = start
+        stop = False
+        while end > self._latest_calc and not stop:
+            dfs = self._feels.tweets_between(
+                self._latest_calc, self._latest_calc + delta_time
+                )
+            for df in dfs:
+                self._sentiment = self.model_sentiment(df, self._sentiment)
+            self._latest_calc = self._latest_calc + delta_time
+            yield self._sentiment
+
+    def model_sentiment(self, df, s):
+        """
+        Defines the real-time sentiment model given a dataframe of tweets.
+
+        :param df: A tweets dataframe.
+        :param s: The initial sentiment value to begin calculation.
+        """
         def avg_sentiment(df):
             avg = 0
             try:
@@ -140,14 +168,24 @@ class TweetFeels(object):
                 avg = 0
             return avg
 
+        df = df.loc[df.sentiment != 0]  # drop rows having 0 sentiment
+        if(len(df)>=self.calc_every_n):
+            df = df.groupby('created_at')
+            df = df.apply(avg_sentiment)
+            df = df.sort_index()
+            for row in df.iteritems():
+                s = s*0.99 + row[1]*0.01
+            # self._latest_calc = df.tail(1).index.to_pydatetime()[0]
+        return s
+
+    @property
+    def connected(self):
+        return self._stream.running
+
+    @property
+    def sentiment(self):
         dfs = self._feels.tweets_since(self._latest_calc)
         for df in dfs:
-            if(len(df)>self.calc_every_n):
-                df = df.loc[df.sentiment != 0]  # drop rows having 0 sentiment
-                df = df.groupby('created_at')
-                df = df.apply(avg_sentiment)
-                df = df.sort_index()
-                for row in df.iteritems():
-                    self._sentiment = self._sentiment*0.99 + row[1]*0.01
-                self._latest_calc = df.tail(1).index.to_pydatetime()[0]
+            self._sentiment = self.model_sentiment(df, self._sentiment)
+        self._latest_calc = datetime.now()
         return self._sentiment
