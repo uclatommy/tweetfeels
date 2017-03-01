@@ -4,7 +4,7 @@ import json
 import os
 import time
 import numpy as np
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from tweetfeels import (TweetFeels, Tweet, TweetData)
 
@@ -23,19 +23,26 @@ class Test_Feels(unittest.TestCase):
              'user': {'followers_count': '100', 'friends_count': '200',
                       'location':None}
             }, # sentiment value = 0
-            {'created_at': 'Sun Feb 19 19:14:19 +0000 2017',
+            {'created_at': 'Sun Feb 20 19:14:19 +0000 2017',
              'id_str': '833394296418082818',
              'text': 'Fake news. Sad!',
              'user': {'followers_count': '100', 'friends_count': '200',
                       'location':None}
             }, # sentiment value = -0.7351
-            {'created_at': 'Sun Feb 19 19:14:20 +0000 2017',
+            {'created_at': 'Sun Feb 21 19:14:20 +0000 2017',
              'id_str': '833394296418082819',
              'text': 'I hate it.',
              'user': {'followers_count': '100', 'friends_count': '200',
                       'location':None}
             } # sentiment value = -0.5719
             ]
+        self.mock_feels = TweetFeels('abcd')
+        self.feels_db = TweetData(file='./test/db.sqlite')
+        self.mock_feels._feels = self.feels_db
+        self.mock_tweets = [Tweet(t) for t in self.tweets]
+
+    def tearDown(self):
+        os.remove('./test/db.sqlite')
 
     def test_start(self):
         mock_feels = TweetFeels("abcd")
@@ -100,24 +107,29 @@ class Test_Feels(unittest.TestCase):
         os.remove('sample.sqlite')
 
     def test_sentiment_comprehensive(self):
-        mock_feels = TweetFeels('abcd')
-        feels_db = TweetData(file='./test/db.sqlite')
-        mock_feels._feels = feels_db
-        tweets = [Tweet(t) for t in self.tweets]
         sentiment = 0.0
-        for t in tweets:
-            feels_db.insert_tweet(t)
+        for t in self.mock_tweets:
+            self.feels_db.insert_tweet(t)
             if t['sentiment']!=0:
                 print(f'0.99*{sentiment} + 0.01*{t["sentiment"]}')
                 sentiment = 0.99*sentiment + 0.01*t['sentiment']
                 print(f'sentiment = {sentiment}')
-        mock_feels.clear_buffer()
-        mock_feels.calc_every_n = 1
+        self.mock_feels.clear_buffer()
+        self.mock_feels.calc_every_n = 1
         # calc = 0*0.99**2 + 0.01*0.99*-0.7531 + 0.01*-0.5719
         #      = -0.01299649
-        self.assertEqual(mock_feels.sentiment, sentiment)
-        dt = datetime(2017, 2, 19, 19, 14, 20)
-        self.assertEqual(mock_feels._latest_calc, dt)
+        now = datetime.now()
+        self.assertEqual(self.mock_feels.sentiment, sentiment)
+        self.assertTrue(self.mock_feels._latest_calc > now)
 
     def test_sentiments(self):
-        pass
+        for t in self.mock_tweets:
+            self.feels_db.insert_tweet(t)
+        self.mock_feels.clear_buffer()
+        self.mock_feels.calc_every_n = 1
+        start = datetime(2017, 2, 19, 0, 0, 0)
+        dt = timedelta(days=1)
+        sentiment = self.mock_feels.sentiments(start, dt)
+        self.assertEqual(next(sentiment), 0)
+        self.assertEqual(next(sentiment), -0.007351)
+        self.assertEqual(next(sentiment), -0.01299649)
