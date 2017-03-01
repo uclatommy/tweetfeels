@@ -129,7 +129,11 @@ class Test_Feels(unittest.TestCase):
         self.mock_feels.calc_every_n = 1
         start = datetime(2017, 2, 19, 0, 0, 0)
         dt = timedelta(days=1)
+        now = datetime.now()
         sentiment = self.mock_feels.sentiments(start, dt)
         self.assertEqual(next(sentiment), 0)
         self.assertEqual(next(sentiment), -0.007351)
         self.assertEqual(next(sentiment), -0.01299649)
+        for s in sentiment:
+            print(s)
+        self.assertTrue(self.mock_feels._latest_calc > now)
