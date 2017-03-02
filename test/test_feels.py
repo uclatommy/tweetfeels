@@ -84,6 +84,9 @@ class Test_Feels(unittest.TestCase):
         mock_feels = TweetFeels("abcd")
         mock_feels._feels.tweets_since = MagicMock(return_value=[])
         mock_feels._sentiment = 0.5
+        mock_feels._latest_calc = datetime(2017, 1, 1, 0, 0, 0)
+        mock_feels._feels.start = datetime(2017, 1, 1, 0, 0, 0)
+        mock_feels._feels.end = datetime(2017, 1, 1, 0, 0, 0)
         self.assertEqual(mock_feels.sentiment, 0.5)
 
     def test_buffer(self):
@@ -111,16 +114,16 @@ class Test_Feels(unittest.TestCase):
         for t in self.mock_tweets:
             self.feels_db.insert_tweet(t)
             if t['sentiment']!=0:
-                print(f'0.99*{sentiment} + 0.01*{t["sentiment"]}')
+                # print(f'0.99*{sentiment} + 0.01*{t["sentiment"]}')
                 sentiment = 0.99*sentiment + 0.01*t['sentiment']
-                print(f'sentiment = {sentiment}')
+                # print(f'sentiment = {sentiment}')
         self.mock_feels.clear_buffer()
-        self.mock_feels.calc_every_n = 1
         # calc = 0*0.99**2 + 0.01*0.99*-0.7531 + 0.01*-0.5719
         #      = -0.01299649
-        now = datetime.now()
-        self.assertEqual(self.mock_feels.sentiment, sentiment)
-        self.assertTrue(self.mock_feels._latest_calc > now)
+        self.mock_feels._latest_calc = self.mock_feels._feels.start
+        self.assertTrue(np.isclose(self.mock_feels.sentiment, sentiment))
+        self.assertEqual(self.mock_feels._latest_calc,
+                         self.mock_feels._feels.end)
 
     def test_sentiments(self):
         for t in self.mock_tweets:
@@ -129,11 +132,11 @@ class Test_Feels(unittest.TestCase):
         self.mock_feels.calc_every_n = 1
         start = datetime(2017, 2, 19, 0, 0, 0)
         dt = timedelta(days=1)
-        now = datetime.now()
-        sentiment = self.mock_feels.sentiments(start, dt)
-        self.assertEqual(next(sentiment), 0)
-        self.assertEqual(next(sentiment), -0.007351)
-        self.assertEqual(next(sentiment), -0.01299649)
+        sentiment = self.mock_feels.sentiments(strt=start, delta_time=dt)
+        self.assertTrue(np.isclose(next(sentiment), 0))
+        self.assertTrue(np.isclose(next(sentiment), -0.007351))
+        self.assertTrue(np.isclose(next(sentiment), -0.01299649))
         for s in sentiment:
             print(s)
-        self.assertTrue(self.mock_feels._latest_calc > now)
+        self.assertEqual(self.mock_feels._latest_calc,
+                         self.mock_feels._feels.end)

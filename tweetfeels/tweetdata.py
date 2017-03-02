@@ -2,6 +2,7 @@ import sqlite3
 import os
 import pandas as pd
 import logging
+from datetime import datetime
 
 class TweetData(object):
     """
@@ -17,17 +18,42 @@ class TweetData(object):
         if not os.path.isfile(self._db):
             self.make_feels_db(self._db)
         self._debug = False
-        self.chunksize=1000
         self.fields = self._fields
 
     @property
     def _fields(self):
         conn = sqlite3.connect(self._db, detect_types=sqlite3.PARSE_DECLTYPES)
         c = conn.cursor()
-        c.execute("select * from tweets")
+        c.execute("SELECT * FROM tweets")
         fields=tuple([f[0] for f in c.description])
         c.close()
         return fields
+
+    @property
+    def start(self):
+        conn = sqlite3.connect(self._db, detect_types=sqlite3.PARSE_COLNAMES)
+        c = conn.cursor()
+        c.execute("SELECT MIN(created_at) as 'ts [timestamp]' from tweets")
+        earliest = c.fetchone()
+        if earliest[0] is None:
+            earliest = datetime.now()
+        else:
+            earliest = earliest[0]
+        c.close()
+        return earliest
+
+    @property
+    def end(self):
+        conn = sqlite3.connect(self._db, detect_types=sqlite3.PARSE_COLNAMES)
+        c = conn.cursor()
+        c.execute("SELECT MAX(created_at) as 'ts [timestamp]' from tweets")
+        latest = c.fetchone()
+        if latest[0] is None:
+            latest = datetime.now()
+        else:
+            latest = latest[0]
+        c.close()
+        return latest
 
     def tweets_since(self, dt):
         """
@@ -39,7 +65,7 @@ class TweetData(object):
         conn = sqlite3.connect(self._db, detect_types=sqlite3.PARSE_DECLTYPES)
         df = pd.read_sql_query(
             'SELECT * FROM tweets WHERE created_at > ?', conn, params=(dt,),
-            parse_dates=['created_at'], chunksize=self.chunksize
+            parse_dates=['created_at']
             )
         return df
 
@@ -56,8 +82,7 @@ class TweetData(object):
         conn = sqlite3.connect(self._db, detect_types=sqlite3.PARSE_DECLTYPES)
         df = pd.read_sql_query(
             'SELECT * FROM tweets WHERE created_at > ? AND created_at <= ?',
-            conn, params=(start, end), parse_dates=['created_at'],
-            chunksize=self.chunksize
+            conn, params=(start, end), parse_dates=['created_at']
             )
         return df
 
@@ -65,8 +90,7 @@ class TweetData(object):
     def all(self):
         conn = sqlite3.connect(self._db, detect_types=sqlite3.PARSE_DECLTYPES)
         df = pd.read_sql_query(
-            'SELECT * FROM tweets', conn, parse_dates=['created_at'],
-            chunksize=self.chunksize
+            'SELECT * FROM tweets', conn, parse_dates=['created_at']
             )
         return df
 

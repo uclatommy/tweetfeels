@@ -23,6 +23,9 @@ class Test_Data(unittest.TestCase):
         self.assertTrue(isinstance(f, tuple))
         self.assertTrue(len(f)>=11)
 
+    def test_start(self):
+        self.assertTrue(isinstance(self.feels_db.start, datetime))
+
     def test_data_operation(self):
         twt = {'created_at': 'Sun Feb 19 19:14:18 +0000 2017',
                'id_str': '833394296418082817',
@@ -30,25 +33,21 @@ class Test_Data(unittest.TestCase):
         t = Tweet(twt)
         self.assertEqual(len(t.keys()), 7)
         self.feels_db.insert_tweet(t)
-        dfs = self.feels_db.tweets_since(datetime.now())
-        for df in dfs:
-            self.assertEqual(len(df), 0)
-        dfs = self.feels_db.tweets_since(0)
-        for df in dfs:
-            self.assertEqual(len(df), 1)
-            df.sentiment = 0.9
-            for row in df.itertuples():
-                self.feels_db.update_tweet(
-                    {'id_str': row.id_str, 'sentiment': row.sentiment}
-                    )
+        df = self.feels_db.tweets_since(datetime.now())
+        self.assertEqual(len(df), 0)
+        df = self.feels_db.tweets_since(0)
+        self.assertEqual(len(df), 1)
+        df.sentiment = 0.9
+        for row in df.itertuples():
+            self.feels_db.update_tweet(
+                {'id_str': row.id_str, 'sentiment': row.sentiment}
+                )
 
         start = datetime(2017, 2, 17, 0, 0, 0)
         before = datetime(2017, 2, 18, 0, 0, 0)
         after = datetime(2017, 2, 20, 0, 0, 0)
-        dfs = self.feels_db.tweets_between(start, before)
-        for df in dfs:
-            self.assertEqual(len(df), 0)
+        df = self.feels_db.tweets_between(start, before)
+        self.assertEqual(len(df), 0)
 
-        dfs = self.feels_db.tweets_between(start, after)
-        for df in dfs:
-            self.assertEqual(len(df), 1)
+        df = self.feels_db.tweets_between(start, after)
+        self.assertEqual(len(df), 1)
