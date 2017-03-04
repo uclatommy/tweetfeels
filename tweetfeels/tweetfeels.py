@@ -158,20 +158,13 @@ class TweetFeels(object):
         self._latest_calc = strt
 
         # start yielding sentiment values
-        # halt = False
-        # counter=0
         end = min(end, self._feels.end)
-        # print('end:', type(end), ', latest', type(self._latest_calc))
-        while self._latest_calc < end:
-            df = self._feels.tweets_between(
-                self._latest_calc, self._latest_calc + delta_time
-                )
-            self._sentiment = self.model_sentiment(df, self._sentiment)
-            self._latest_calc = min(self._latest_calc + delta_time, end)
-            # counter+=1
-            # halt = counter>10
-            # print(f'latest: {self._latest_calc}, end: {end}')
-            yield self._sentiment
+        if self._latest_calc < end:
+            for df in self._feels.fetchbin(start=self._latest_calc, end=end,
+                                           binsize=delta_time):
+                self._sentiment = self.model_sentiment(df, self._sentiment)
+                self._latest_calc = min(self._latest_calc + delta_time, end)
+                yield self._sentiment
 
     def model_sentiment(self, df, s, fo=0.99):
         """
