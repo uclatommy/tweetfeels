@@ -1,10 +1,11 @@
 import unittest
 from tweetfeels import TweetData
 from tweetfeels import Tweet
-from datetime import datetime
+from datetime import datetime, timedelta
 import json
 import os
 import pandas as pd
+import numpy as np
 
 
 class Test_Data(unittest.TestCase):
@@ -65,7 +66,9 @@ class Test_Data(unittest.TestCase):
             self.feels_db.insert_tweet(t)
         self.assertEqual(len(self.feels_db.tweet_dates), 105)
         df = self.feels_db.tweet_dates
-        df = df.groupby(pd.TimeGrouper(freq='30Min')).size()
+        timebox = timedelta(seconds=60)
+        second = timedelta(seconds=1)
+        df = df.groupby(pd.TimeGrouper(freq=f'{int(timebox/second)}S')).size()
         df = df[df != 0]
         print(df)
         self.assertEqual(len(df), 3)
