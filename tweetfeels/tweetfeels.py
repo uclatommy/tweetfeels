@@ -1,5 +1,5 @@
 import time
-from datetime import datetime
+from datetime import datetime, timedelta
 from threading import Thread
 from collections import deque
 from nltk.sentiment.vader import SentimentIntensityAnalyzer
@@ -43,8 +43,8 @@ class TweetFeels(object):
         self.lang = ['en']
         self._sentiment = 0
         self._filter_level = 'low'
-        self.calc_every_n = 10
-        self._latest_calc = 0
+        self._bin_size = timedelta(seconds=60)
+        self._latest_calc = self._feels.start
         self._tweet_buffer = deque()
         self.buffer_limit = 50
 
@@ -125,57 +125,66 @@ class TweetFeels(object):
         """
         self.start()
 
-    def sentiments(self, start, delta_time):
+    def sentiments(self, strt=None, end=None, delta_time=None):
         """
         Provides a generator for sentiment values in ``delta_time`` increments.
 
         :param start: The start time at which the generator yeilds a value.
         :type start: datetime
+        :param end: The ending datetime of the series.
+        :type end: datetime
         :param delta_time: The time length that each sentiment value represents.
         :type delta_time: timedelta
         """
-        self._sentiment = 0
-        self._latest_calc = datetime(1900, 1, 1, 0, 0, 0)
-        end = datetime.now()
-        dfs = self._feels.tweets_between(self._latest_calc, start)
-        for df in dfs:
-            self._sentiment = self.model_sentiment(df, self._sentiment)
-        self._latest_calc = start
-        stop = False
-        while end > self._latest_calc and not stop:
-            dfs = self._feels.tweets_between(
-                self._latest_calc, self._latest_calc + delta_time
-                )
-            for df in dfs:
-                self._sentiment = self.model_sentiment(df, self._sentiment)
-            self._latest_calc = self._latest_calc + delta_time
-            yield self._sentiment
+        beginning = self._feels.start
 
-    def model_sentiment(self, df, s):
+        if strt is None:
+            self._latest_calc = beginning
+        else:
+            self._latest_calc = max(strt, self._feels.start)
+        if end is None:
+            end = self._feels.end
+        if delta_time is None:
+            delta_time = timedelta(seconds=60)
+
+        # get to the starting point
+        if strt < self._latest_calc:
+            self._sentiment = 0
+            df = self._feels.tweets_between(beginning, strt)
+        else:
+            df = self._feels.tweets_between(self._latest_calc, strt)
+
+        self._sentiment = self.model_sentiment(df, self._sentiment)
+        self._latest_calc = strt
+
+        # start yielding sentiment values
+        end = min(end, self._feels.end)
+        if self._latest_calc < end:
+            for df in self._feels.fetchbin(start=self._latest_calc, end=end,
+                                           binsize=delta_time):
+                self._sentiment = self.model_sentiment(df, self._sentiment)
+                self._latest_calc = min(self._latest_calc + delta_time, end)
+                yield self._sentiment
+
+    def model_sentiment(self, df, s, fo=0.99):
         """
         Defines the real-time sentiment model given a dataframe of tweets.
 
         :param df: A tweets dataframe.
         :param s: The initial sentiment value to begin calculation.
+        :param fo: Fall-off factor
         """
-        def avg_sentiment(df):
-            avg = 0
-            try:
-                avg = np.average(
-                    df.sentiment, weights=df.followers_count+df.friends_count
-                    )
-            except ZeroDivisionError:
-                avg = 0
-            return avg
-
         df = df.loc[df.sentiment != 0]  # drop rows having 0 sentiment
-        if(len(df)>=self.calc_every_n):
-            df = df.groupby('created_at')
-            df = df.apply(avg_sentiment)
-            df = df.sort_index()
-            for row in df.iteritems():
-                s = s*0.99 + row[1]*0.01
-            # self._latest_calc = df.tail(1).index.to_pydatetime()[0]
+        if(len(df)>0):
+            try:
+                val = df.groupby(df.index).apply(
+                    lambda x: np.average(
+                        x.sentiment, weights=x.followers_count+x.friends_count
+                        )
+                    )[0]
+            except ZeroDivisionError:
+                val = 0
+            s = s*fo + val*(1-fo)
         return s
 
     @property
@@ -184,8 +193,11 @@ class TweetFeels(object):
 
     @property
     def sentiment(self):
-        dfs = self._feels.tweets_since(self._latest_calc)
-        for df in dfs:
-            self._sentiment = self.model_sentiment(df, self._sentiment)
-        self._latest_calc = datetime.now()
+        end = self._feels.end
+        sentiments = self.sentiments(
+            strt=self._latest_calc, end=end, delta_time=self._bin_size
+            )
+        for s in sentiments:
+            self._sentiment = s
+        self._latest_calc = end
         return self._sentiment
