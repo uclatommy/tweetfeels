@@ -177,11 +177,9 @@ class TweetFeels(object):
         df = df.loc[df.sentiment != 0]  # drop rows having 0 sentiment
         if(len(df)>0):
             try:
-                val = df.groupby(df.index).apply(
-                    lambda x: np.average(
-                        x.sentiment, weights=x.followers_count+x.friends_count
-                        )
-                    )[0]
+                val = np.average(
+                    df.sentiment, weights=df.followers_count+df.friends_count
+                    )
             except ZeroDivisionError:
                 val = 0
             s = s*fo + val*(1-fo)
