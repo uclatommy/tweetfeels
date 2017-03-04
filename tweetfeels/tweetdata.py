@@ -9,8 +9,10 @@ class TweetData(object):
     Models the tweet database.
 
     :param file: The sqlite3 file to store data
-    :ivar chunksize: The chunksize to use for all dataframe data retrievals
     :ivar fields: A list of tweet data fields defined by the database
+    :ivar start: The datetime of the earliest tweet.
+    :ivar end: The datetime of the latest tweet.
+    :ivar tweet_dates: A series of all tweet dates.
     :ivar all: A coroutine that yields dataframes chunked by ``chunksize``.
     """
     def __init__(self, file='feels.sqlite'):
@@ -64,7 +66,26 @@ class TweetData(object):
             )
         return df
 
+    @property
+    def all(self):
+        conn = sqlite3.connect(self._db, detect_types=sqlite3.PARSE_DECLTYPES)
+        df = pd.read_sql_query(
+            'SELECT * FROM tweets', conn, parse_dates=['created_at']
+            )
+        return df
+
     def fetchbin(self, start=None, end=None, binsize=timedelta(seconds=60)):
+        """
+        Returns a generator that can be used to iterate over the tweet data
+        based on ``binsize``.
+
+        :param start: Query start date.
+        :type start: datetime
+        :param end: Query end date.
+        :type end: datetime
+        :param binsize: Time duration for each bin for tweet grouping.
+        :type binsize: timedelta
+        """
         if start is None: start=self.start
         if end is None: end=self.end
         second = timedelta(seconds=1)
@@ -111,14 +132,6 @@ class TweetData(object):
         df = pd.read_sql_query(
             'SELECT * FROM tweets WHERE created_at > ? AND created_at <= ?',
             conn, params=(start, end), parse_dates=['created_at']
-            )
-        return df
-
-    @property
-    def all(self):
-        conn = sqlite3.connect(self._db, detect_types=sqlite3.PARSE_DECLTYPES)
-        df = pd.read_sql_query(
-            'SELECT * FROM tweets', conn, parse_dates=['created_at']
             )
         return df
 

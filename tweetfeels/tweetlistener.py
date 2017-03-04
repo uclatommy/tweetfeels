@@ -145,6 +145,8 @@ class TweetListener(StreamListener):
         Called when twitter sends a disconnect notice
         Disconnect codes are listed here:
         https://dev.twitter.com/docs/streaming-apis/messages#Disconnect_messages_disconnect
+
+        :param notice: Raw json data describing notice.
         """
         msg = json.loads(notice)['disconnect']
         if msg['code'] == 4 or msg['code'] > 8:
