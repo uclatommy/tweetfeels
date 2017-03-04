@@ -55,6 +55,15 @@ class TweetData(object):
         c.close()
         return latest
 
+    @property
+    def tweet_dates(self):
+        conn = sqlite3.connect(self._db, detect_types=sqlite3.PARSE_COLNAMES)
+        df = pd.read_sql_query(
+            'SELECT created_at FROM tweets', conn, parse_dates=['created_at'],
+            index_col=['created_at']
+            )
+        return df
+
     def tweets_since(self, dt):
         """
         Retrieves all tweets since a particular datetime as a generator that

@@ -4,6 +4,7 @@ from tweetfeels import Tweet
 from datetime import datetime
 import json
 import os
+import pandas as pd
 
 
 class Test_Data(unittest.TestCase):
@@ -11,6 +12,27 @@ class Test_Data(unittest.TestCase):
         self.tweets_data_path = 'test/sample.json'
         self.db = './test.sqlite'
         self.feels_db = TweetData(self.db)
+        self.tweets = [
+            {'created_at': 'Sun Feb 19 19:14:18 +0000 2017',
+             'id_str': '833394296418082817',
+             'text': 'Tweetfeels is tremendous! Believe me. I know.',
+             'user': {'followers_count': '100', 'friends_count': '200',
+                      'location':None}
+            }, # sentiment value = 0
+            {'created_at': 'Sun Feb 20 19:14:19 +0000 2017',
+             'id_str': '833394296418082818',
+             'text': 'Fake news. Sad!',
+             'user': {'followers_count': '100', 'friends_count': '200',
+                      'location':None}
+            }, # sentiment value = -0.7351
+            {'created_at': 'Sun Feb 21 19:14:20 +0000 2017',
+             'id_str': '833394296418082819',
+             'text': 'I hate it.',
+             'user': {'followers_count': '100', 'friends_count': '200',
+                      'location':None}
+            } # sentiment value = -0.5719
+            ]
+        self.mock_tweets = [Tweet(t) for t in self.tweets]
 
     def tearDown(self):
         os.remove(self.db)
@@ -25,6 +47,29 @@ class Test_Data(unittest.TestCase):
 
     def test_start(self):
         self.assertTrue(isinstance(self.feels_db.start, datetime))
+
+    def test_dates(self):
+        for t in self.mock_tweets:
+            self.feels_db.insert_tweet(t)
+        self.assertEqual(len(self.feels_db.tweet_dates), 3)
+
+        tweets = []
+        with open(self.tweets_data_path) as tweets_file:
+            lines = filter(None, (line.rstrip() for line in tweets_file))
+            for line in lines:
+                try:
+                    tweets.append(Tweet(json.loads(line)))
+                except KeyError:
+                    pass
+        for t in tweets:
+            self.feels_db.insert_tweet(t)
+        self.assertEqual(len(self.feels_db.tweet_dates), 105)
+        df = self.feels_db.tweet_dates
+        df = df.groupby(pd.TimeGrouper(freq='30Min')).size()
+        df = df[df != 0]
+        print(df)
+        self.assertEqual(len(df), 3)
+        self.assertEqual(df.iloc[0], 103)
 
     def test_data_operation(self):
         twt = {'created_at': 'Sun Feb 19 19:14:18 +0000 2017',
