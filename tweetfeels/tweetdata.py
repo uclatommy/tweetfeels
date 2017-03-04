@@ -2,7 +2,7 @@ import sqlite3
 import os
 import pandas as pd
 import logging
-from datetime import datetime
+from datetime import datetime, timedelta
 
 class TweetData(object):
     """
@@ -63,6 +63,20 @@ class TweetData(object):
             index_col=['created_at']
             )
         return df
+
+    def fetchbin(self, binsize=timedelta(seconds=60)):
+        second = timedelta(seconds=1)
+        df = self.tweet_dates
+        df = df.groupby(pd.TimeGrouper(freq=f'{int(binsize/second)}S')).size()
+        df = df[df != 0]
+        conn = sqlite3.connect(self._db, detect_types=sqlite3.PARSE_DECLTYPES)
+        c = conn.cursor()
+        c.execute("SELECT * FROM tweets")
+        for i in range(len(df)):
+            yield pd.DataFrame.from_records(
+                data=c.fetchmany(df.iloc[i]), columns=self.fields
+                )
+        c.close()
 
     def tweets_since(self, dt):
         """

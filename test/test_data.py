@@ -74,6 +74,26 @@ class Test_Data(unittest.TestCase):
         self.assertEqual(len(df), 3)
         self.assertEqual(df.iloc[0], 103)
 
+    def test_fetch(self):
+        tweets = []
+        with open(self.tweets_data_path) as tweets_file:
+            lines = filter(None, (line.rstrip() for line in tweets_file))
+            for line in lines:
+                try:
+                    tweets.append(Tweet(json.loads(line)))
+                except KeyError:
+                    pass
+        for t in tweets:
+            self.feels_db.insert_tweet(t)
+
+        for t in self.mock_tweets:
+            self.feels_db.insert_tweet(t)
+
+        it = self.feels_db.fetchbin(timedelta(minutes=30))
+        self.assertEqual(len(next(it)), 103)
+        self.assertEqual(len(next(it)), 1)
+        self.assertEqual(len(next(it)), 1)
+
     def test_data_operation(self):
         twt = {'created_at': 'Sun Feb 19 19:14:18 +0000 2017',
                'id_str': '833394296418082817',
