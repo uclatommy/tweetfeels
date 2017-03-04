@@ -89,7 +89,7 @@ class Test_Data(unittest.TestCase):
         for t in self.mock_tweets:
             self.feels_db.insert_tweet(t)
 
-        it = self.feels_db.fetchbin(timedelta(minutes=30))
+        it = self.feels_db.fetchbin(binsize=timedelta(minutes=30))
         self.assertEqual(len(next(it)), 103)
         self.assertEqual(len(next(it)), 1)
         self.assertEqual(len(next(it)), 1)

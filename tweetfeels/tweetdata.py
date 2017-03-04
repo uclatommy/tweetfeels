@@ -64,14 +64,19 @@ class TweetData(object):
             )
         return df
 
-    def fetchbin(self, binsize=timedelta(seconds=60)):
+    def fetchbin(self, start=None, end=None, binsize=timedelta(seconds=60)):
+        if start is None: start=self.start
+        if end is None: end=self.end
         second = timedelta(seconds=1)
         df = self.tweet_dates
         df = df.groupby(pd.TimeGrouper(freq=f'{int(binsize/second)}S')).size()
         df = df[df != 0]
         conn = sqlite3.connect(self._db, detect_types=sqlite3.PARSE_DECLTYPES)
         c = conn.cursor()
-        c.execute("SELECT * FROM tweets")
+        c.execute(
+            "SELECT * FROM tweets WHERE created_at >= ? AND created_at <= ?",
+            (start, end)
+            )
         for i in range(len(df)):
             yield pd.DataFrame.from_records(
                 data=c.fetchmany(df.iloc[i]), columns=self.fields
