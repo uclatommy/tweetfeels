@@ -172,7 +172,7 @@ class TweetFeels(object):
             dfs = self._feels.fetchbin(
                 start=self._latest_calc, end=end, binsize=delta_time
                 )
-            sentiment = deque()
+            sentiment = deque([self._sentiment])
             for df in dfs:
                 try:
                     # only save sentiment value if not the last element
@@ -185,6 +185,9 @@ class TweetFeels(object):
                 self._latest_calc =  self._latest_calc + bins*delta_time
                 # Yield the latest element
                 yield sentiment[-1]
+        else:
+            # this only happens when strt >= end
+            yield self._sentiment
 
     def model_sentiment(self, df, s, fo=0.99):
         """
