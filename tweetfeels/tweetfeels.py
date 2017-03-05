@@ -20,8 +20,6 @@ class TweetFeels(object):
     :param tracking: A list of keywords to track.
     :param db: A sqlite database to store data. Will be created if it doesn't
                already exist. Will append if it exists.
-    :ivar calc_every_n: Wont calculate new sentiment until there are n records
-                        in the queue.
     :ivar lang: A list of languages to include in tweet gathering.
     :ivar buffer_limit: When the number of tweets in the buffer hits this limit
                         all tweets in the buffer gets flushed to the database.
@@ -161,8 +159,10 @@ class TweetFeels(object):
         # start yielding sentiment values
         end = min(end, self._feels.end)
         if self._latest_calc < end:
-            for df in self._feels.fetchbin(start=self._latest_calc, end=end,
-                                           binsize=delta_time):
+            dfs = self._feels.fetchbin(
+                start=self._latest_calc, end=end, binsize=delta_time
+                )
+            for df in dfs:
                 self._sentiment = self.model_sentiment(df, self._sentiment)
                 self._latest_calc = min(self._latest_calc + delta_time, end)
                 yield self._sentiment
