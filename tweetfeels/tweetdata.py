@@ -100,7 +100,8 @@ class TweetData(object):
             )
         for i in range(len(df)):
             yield pd.DataFrame.from_records(
-                data=c.fetchmany(df.iloc[i]), columns=self.fields
+                data=c.fetchmany(df.iloc[i]), columns=self.fields,
+                index='created_at'
                 )
         c.close()
 
