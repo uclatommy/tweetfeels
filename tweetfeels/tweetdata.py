@@ -90,6 +90,7 @@ class TweetData(object):
         if end is None: end=self.end
         second = timedelta(seconds=1)
         df = self.tweet_dates
+        df = df[df.index >= start]
         df = df.groupby(pd.TimeGrouper(freq=f'{int(binsize/second)}S')).size()
         df = df[df != 0]
         conn = sqlite3.connect(self._db, detect_types=sqlite3.PARSE_DECLTYPES)
