@@ -180,7 +180,8 @@ class TweetFeels(object):
                 except IndexError:
                     pass
                 sentiment.append(self.model_sentiment(df, self._sentiment))
-                bins = int((df.index.max() - self._latest_calc)/delta_time)
+                bins = int((df.index.max().to_pydatetime() -
+                            self._latest_calc)/delta_time)
                 self._latest_calc =  self._latest_calc + bins*delta_time
                 # Yield the latest element
                 yield sentiment[-1]
