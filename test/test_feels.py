@@ -122,8 +122,11 @@ class Test_Feels(unittest.TestCase):
         #      = -0.01299649
         self.mock_feels._latest_calc = self.mock_feels._feels.start
         self.assertTrue(np.isclose(self.mock_feels.sentiment, sentiment))
+        # first observation is at 2017-2-19 19:14:18 and we are using default
+        # 60 second bins, therefore the observation at 2017-2-21 19:14:20 will
+        # never get saved but will always be recalculated.
         self.assertEqual(self.mock_feels._latest_calc,
-                         self.mock_feels._feels.end)
+                         datetime(2017, 2, 21, 19, 14, 18))
 
     def test_sentiments(self):
         for t in self.mock_tweets:
@@ -138,5 +141,7 @@ class Test_Feels(unittest.TestCase):
         self.assertTrue(np.isclose(next(sentiment), -0.01299649))
         for s in sentiment:
             print(s)
+        # we are starting at 2017-2-19 19:00:00 and using bins with lenght 1 day
+        # therefore our latest calc will be just prior to the last observation.
         self.assertEqual(self.mock_feels._latest_calc,
-                         self.mock_feels._feels.end)
+                         datetime(2017, 2, 21, 0, 0, 0))

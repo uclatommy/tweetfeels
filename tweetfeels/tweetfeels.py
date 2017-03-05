@@ -162,10 +162,18 @@ class TweetFeels(object):
             dfs = self._feels.fetchbin(
                 start=self._latest_calc, end=end, binsize=delta_time
                 )
+            sentiment = deque()
             for df in dfs:
-                self._sentiment = self.model_sentiment(df, self._sentiment)
-                self._latest_calc = min(self._latest_calc + delta_time, end)
-                yield self._sentiment
+                try:
+                    # only save sentiment value if not the last element
+                    self._sentiment = sentiment.popleft()
+                except IndexError:
+                    pass
+                sentiment.append(self.model_sentiment(df, self._sentiment))
+                bins = int((df.created_at - self._latest_calc)/delta_time)
+                self._latest_calc =  self._latest_calc + bins*delta_time
+                # Yield the latest element
+                yield sentiment[-1]
 
     def model_sentiment(self, df, s, fo=0.99):
         """
@@ -198,5 +206,4 @@ class TweetFeels(object):
             )
         for s in sentiments:
             self._sentiment = s
-        self._latest_calc = end
         return self._sentiment
