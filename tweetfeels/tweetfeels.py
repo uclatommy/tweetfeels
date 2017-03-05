@@ -215,6 +215,7 @@ class TweetFeels(object):
         sentiments = self.sentiments(
             strt=self._latest_calc, end=end, delta_time=self._bin_size
             )
+        ret = None
         for s in sentiments:
-            self._sentiment = s
-        return self._sentiment
+            ret = s
+        return ret
