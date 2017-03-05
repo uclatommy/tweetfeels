@@ -128,6 +128,11 @@ class Test_Feels(unittest.TestCase):
         self.assertEqual(self.mock_feels._latest_calc,
                          datetime(2017, 2, 21, 19, 14, 18))
 
+        # repeat the calculation, nothing changes
+        self.assertTrue(np.isclose(self.mock_feels.sentiment, sentiment))
+        self.assertEqual(self.mock_feels._latest_calc,
+                         datetime(2017, 2, 21, 19, 14, 18))
+
     def test_sentiments(self):
         for t in self.mock_tweets:
             self.feels_db.insert_tweet(t)
