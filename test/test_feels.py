@@ -47,10 +47,10 @@ class Test_Feels(unittest.TestCase):
     def test_start(self):
         mock_feels = TweetFeels("abcd")
         mock_feels.tracking = []
-        mock_feels.start()
+        mock_feels.start(selfupdate=0)
         mock_feels._stream.filter.assert_not_called()
         mock_feels.tracking = ['tsla']
-        mock_feels.start()
+        mock_feels.start(selfupdate=0)
         mock_feels._stream.filter.assert_called_once()
 
     def test_stop(self):
@@ -141,7 +141,7 @@ class Test_Feels(unittest.TestCase):
         self.assertTrue(np.isclose(next(sentiment), -0.01299649))
         for s in sentiment:
             print(s)
-        # we are starting at 2017-2-19 19:00:00 and using bins with lenght 1 day
-        # therefore our latest calc will be just prior to the last observation.
+        # we are starting at 2017-2-19 19:00:00 and using bins with length 1 day
+        # therefore our latest calc will be just prior to the final observation.
         self.assertEqual(self.mock_feels._latest_calc,
                          datetime(2017, 2, 21, 0, 0, 0))

@@ -46,18 +46,24 @@ class TweetFeels(object):
         self._tweet_buffer = deque()
         self.buffer_limit = 50
 
-    def start(self, seconds=None):
+    def start(self, seconds=None, selfupdate=60):
         """
         Start listening to the stream.
 
         :param seconds: If you want to automatically disconnect after a certain
                         amount of time, pass the number of seconds into this
                         parameter.
+        :param selfupdate: Number of seconds between auto-calculate.
         """
         def delayed_stop():
             time.sleep(seconds)
             print('Timer completed. Disconnecting now...')
             self.stop()
+
+        def self_update():
+            while self.connected:
+                time.sleep(selfupdate)
+                self.sentiment
 
         if len(self.tracking) == 0:
             print('Nothing to track!')
@@ -74,6 +80,10 @@ class TweetFeels(object):
         if seconds is not None:
             t = Thread(target=delayed_stop)
             t.start()
+
+        if selfupdate is not None and selfupdate > 0:
+            t2 = Thread(target=self_update)
+            t2.start()
 
     def stop(self):
         """
