@@ -140,12 +140,13 @@ class TweetFeels(object):
 
         if strt is None:
             self._latest_calc = beginning
+            strt = beginning
         else:
             self._latest_calc = max(strt, self._feels.start)
         if end is None:
             end = self._feels.end
         if delta_time is None:
-            delta_time = timedelta(seconds=60)
+            delta_time = self._bin_size
 
         # get to the starting point
         if strt < self._latest_calc:
