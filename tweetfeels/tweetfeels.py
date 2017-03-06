@@ -46,18 +46,24 @@ class TweetFeels(object):
         self._tweet_buffer = deque()
         self.buffer_limit = 50
 
-    def start(self, seconds=None):
+    def start(self, seconds=None, selfupdate=60):
         """
         Start listening to the stream.
 
         :param seconds: If you want to automatically disconnect after a certain
                         amount of time, pass the number of seconds into this
                         parameter.
+        :param selfupdate: Number of seconds between auto-calculate.
         """
         def delayed_stop():
             time.sleep(seconds)
             print('Timer completed. Disconnecting now...')
             self.stop()
+
+        def self_update():
+            while self.connected:
+                time.sleep(selfupdate)
+                self.sentiment
 
         if len(self.tracking) == 0:
             print('Nothing to track!')
@@ -74,6 +80,10 @@ class TweetFeels(object):
         if seconds is not None:
             t = Thread(target=delayed_stop)
             t.start()
+
+        if selfupdate is not None and selfupdate > 0:
+            t2 = Thread(target=self_update)
+            t2.start()
 
     def stop(self):
         """
@@ -162,10 +172,23 @@ class TweetFeels(object):
             dfs = self._feels.fetchbin(
                 start=self._latest_calc, end=end, binsize=delta_time
                 )
+            sentiment = deque()
             for df in dfs:
-                self._sentiment = self.model_sentiment(df, self._sentiment)
-                self._latest_calc = min(self._latest_calc + delta_time, end)
-                yield self._sentiment
+                try:
+                    # only save sentiment value if not the last element
+                    self._sentiment = sentiment.popleft()
+                except IndexError:
+                    pass
+
+                sentiment.append(self.model_sentiment(df, self._sentiment))
+                bins = int((df.index.max().to_pydatetime() -
+                            self._latest_calc)/delta_time)
+                self._latest_calc =  self._latest_calc + bins*delta_time
+                # Yield the latest element
+                yield sentiment[-1]
+        else:
+            # this only happens when strt >= end
+            yield self._sentiment
 
     def model_sentiment(self, df, s, fo=0.99):
         """
@@ -196,7 +219,7 @@ class TweetFeels(object):
         sentiments = self.sentiments(
             strt=self._latest_calc, end=end, delta_time=self._bin_size
             )
+        ret = None
         for s in sentiments:
-            self._sentiment = s
-        self._latest_calc = end
-        return self._sentiment
+            ret = s
+        return ret

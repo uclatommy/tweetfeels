@@ -86,22 +86,26 @@ class TweetData(object):
         :param binsize: Time duration for each bin for tweet grouping.
         :type binsize: timedelta
         """
-        if start is None: start=self.start
-        if end is None: end=self.end
         second = timedelta(seconds=1)
+        if start is None: start=self.start-second
+        if end is None: end=self.end
+        if start == self.start: start = start-second
         df = self.tweet_dates
         df = df.groupby(pd.TimeGrouper(freq=f'{int(binsize/second)}S')).size()
+        df = df[df.index > start - binsize]
         df = df[df != 0]
         conn = sqlite3.connect(self._db, detect_types=sqlite3.PARSE_DECLTYPES)
         c = conn.cursor()
         c.execute(
-            "SELECT * FROM tweets WHERE created_at >= ? AND created_at <= ?",
+            "SELECT * FROM tweets WHERE created_at > ? AND created_at <= ?",
             (start, end)
             )
-        for i in range(len(df)):
-            yield pd.DataFrame.from_records(
-                data=c.fetchmany(df.iloc[i]), columns=self.fields
+        for i in range(0,len(df)):
+            frame = pd.DataFrame.from_records(
+                data=c.fetchmany(df.iloc[i]), columns=self.fields,
+                index='created_at'
                 )
+            if len(frame)>0: yield frame
         c.close()
 
     def tweets_since(self, dt):
