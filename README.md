@@ -119,11 +119,11 @@ Timer completed. Disconnecting now...
 [Mon Feb 20 23:47:58 2017] Sentiment Score: -0.11307793897469191
 >>> trump_feels.stop()
 ```
-    
+
 **Note:** Trump is an extremely high volume topic. We ran this for roughly 6 minutes and gathered nearly 15,000 tweets! For lower volume topics, you may want to poll the sentiment value less frequently than every 10 seconds.
 
 #### Stream tweets continuously for another topic and save to a different database.
-    
+
 ```python
 >>> tesla_feels = TweetFeels(login, tracking=['tesla', 'tsla', 'gigafactory', 'elonmusk'], db='tesla.sqlite')
 >>> tesla_feels.calc_every_n = 10
@@ -147,14 +147,15 @@ To correct for these effects, we time-box every second and do not discard the se
 
 ![f1]
 
-Where ![f2] is the aggregate sentiment at time t and ![f3] is the sentiment score for the current time-box. We start the calculation with ![f4], which is why you will see the sentiment score move away from zero until it stabilizes around the natural value. Within each time-box we are using a weighted average of sentiment scores. For each tweet, we utilize the associated user's follower count as the measure of influence.
+Where ![f2] is the aggregate sentiment at time t, ![f3] is the sentiment score for the current time-box, and ![f5] is the fall-off factor between 0 and 1. We start the calculation with ![f4], which is why you will see the sentiment score move away from zero until it stabilizes around the natural value. Within each time-box we are using a weighted average of sentiment scores. For each tweet, we utilize the associated user's follower count as the measure of influence.
 
 Some tweets will also have a neutral score (0.0). In these cases, we exclude it from aggregation.
 
-[f1]: http://chart.apis.google.com/chart?cht=tx&chl=S_{t}=0.99S_{t-1}%2B0.01s_t
+[f1]: http://chart.apis.google.com/chart?cht=tx&chl=S_{t}=%5calpha{S_{t-1}}%2B(1-%5calpha)s_t
 [f2]: http://chart.apis.google.com/chart?cht=tx&chl=S_t
 [f3]: http://chart.apis.google.com/chart?cht=tx&chl=s_t
 [f4]: http://chart.apis.google.com/chart?cht=tx&chl=S_0=0
+[f5]: http://chart.apis.google.com/chart?cht=tx&chl=%5calpha
 
 ## Caveats
 The trained dataset that comes with [vaderSentiment](https://github.com/cjhutto/vaderSentiment) is optimized for social media, so it can recognize the sentiment embedded in neologisms, internet shorthand, and even emoticons. However, it can only measure the aggregate sentiment value of a sentence or group of words. It does not measure whether or not a tweet agrees or disagrees with a particular ideology, political figure, or party. Although it is generally true that statements of disagreement will tend to have a negative sentiment. As an illustration, have a look at a few sentiment scores from the trump dataset:
