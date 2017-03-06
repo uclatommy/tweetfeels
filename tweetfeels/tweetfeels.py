@@ -172,13 +172,14 @@ class TweetFeels(object):
             dfs = self._feels.fetchbin(
                 start=self._latest_calc, end=end, binsize=delta_time
                 )
-            sentiment = deque([self._sentiment])
+            sentiment = deque()
             for df in dfs:
                 try:
                     # only save sentiment value if not the last element
                     self._sentiment = sentiment.popleft()
                 except IndexError:
                     pass
+
                 sentiment.append(self.model_sentiment(df, self._sentiment))
                 bins = int((df.index.max().to_pydatetime() -
                             self._latest_calc)/delta_time)
