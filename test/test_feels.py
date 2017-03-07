@@ -17,13 +17,13 @@ class Test_Feels(unittest.TestCase):
         TweetFeels._stream_factory = (lambda auth, listener: MagicMock())
         self.tweets_data_path = 'test/sample.json'
         self.tweets = [
-            {'created_at': 'Sun Feb 19 19:14:18 +0000 2017',
+            {'created_at': 'Sun Feb 19 09:14:18 +0000 2017',
              'id_str': '833394296418082817',
              'text': 'Tweetfeels is tremendous! Believe me. I know.',
              'user': {'followers_count': '100', 'friends_count': '200',
                       'location':None}
             }, # sentiment value = 0
-            {'created_at': 'Sun Feb 20 19:14:19 +0000 2017',
+            {'created_at': 'Sun Feb 21 18:14:19 +0000 2017',
              'id_str': '833394296418082818',
              'text': 'Fake news. Sad!',
              'user': {'followers_count': '100', 'friends_count': '200',
@@ -40,6 +40,9 @@ class Test_Feels(unittest.TestCase):
         self.feels_db = TweetData(file='./test/db.sqlite')
         self.mock_feels._feels = self.feels_db
         self.mock_tweets = [Tweet(t) for t in self.tweets]
+        for t in self.mock_tweets:
+            self.feels_db.insert_tweet(t)
+        self.mock_feels.clear_buffer()
 
     def tearDown(self):
         os.remove('./test/db.sqlite')
@@ -112,12 +115,8 @@ class Test_Feels(unittest.TestCase):
     def test_sentiment_comprehensive(self):
         sentiment = 0.0
         for t in self.mock_tweets:
-            self.feels_db.insert_tweet(t)
             if t['sentiment']!=0:
-                # print(f'0.99*{sentiment} + 0.01*{t["sentiment"]}')
                 sentiment = 0.99*sentiment + 0.01*t['sentiment']
-                # print(f'sentiment = {sentiment}')
-        self.mock_feels.clear_buffer()
         # calc = 0*0.99**2 + 0.01*0.99*-0.7531 + 0.01*-0.5719
         #      = -0.01299649
         self.mock_feels._latest_calc = self.mock_feels._feels.start
@@ -133,20 +132,40 @@ class Test_Feels(unittest.TestCase):
         self.assertEqual(self.mock_feels._latest_calc,
                          datetime(2017, 2, 21, 19, 14, 18))
 
-    def test_sentiments(self):
+    def test_sentiment_factor(self):
+        sentiment = 0.0
+        self.mock_feels.factor = 0.75
         for t in self.mock_tweets:
-            self.feels_db.insert_tweet(t)
-        self.mock_feels.clear_buffer()
-        self.mock_feels.calc_every_n = 1
+            if t['sentiment']!=0:
+                sentiment = 0.75*sentiment + 0.25*t['sentiment']
+
+        # calc = 0*0.75**2 + 0.25*0.75*-0.7531 + 0.25*-0.5719
+        #      = -0.28418125
+        mock_sentiment = self.mock_feels.sentiment
+        self.assertTrue(np.isclose(mock_sentiment, sentiment))
+
+    def test_sentiment_binsize(self):
+        T = self.mock_tweets
+        A = T[1]['sentiment']
+        B = T[2]['sentiment']
+        sentiment = 0.75*0 + 0.25*(A+B)/2
+
+        self.mock_feels.factor = 0.75
+        self.mock_feels.binsize = timedelta(days=2.5)
+        mock_sentiment = self.mock_feels.sentiment
+        self.assertTrue(np.isclose(mock_sentiment, sentiment))
+
+    def test_sentiments(self):
         start = datetime(2017, 2, 19, 0, 0, 0)
-        dt = timedelta(days=1)
+        dt = timedelta(minutes=30)
         sentiment = self.mock_feels.sentiments(strt=start, delta_time=dt)
         self.assertTrue(np.isclose(next(sentiment), 0))
         self.assertTrue(np.isclose(next(sentiment), -0.007351))
         self.assertTrue(np.isclose(next(sentiment), -0.01299649))
         for s in sentiment:
             print(s)
-        # we are starting at 2017-2-19 19:00:00 and using bins with length 1 day
-        # therefore our latest calc will be just prior to the final observation.
+        # we are starting at 2017-2-19 19:00:00 and using bins with length 30
+        # minutes, therefore our latest calc will be just prior to the final
+        # observation.
         self.assertEqual(self.mock_feels._latest_calc,
-                         datetime(2017, 2, 21, 0, 0, 0))
+                         datetime(2017, 2, 21, 19, 0, 0))
