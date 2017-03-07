@@ -125,12 +125,12 @@ class Test_Feels(unittest.TestCase):
         # 60 second bins, therefore the observation at 2017-2-21 19:14:20 will
         # never get saved but will always be recalculated.
         self.assertEqual(self.mock_feels._latest_calc,
-                         datetime(2017, 2, 21, 19, 14, 18))
+                         datetime(2017, 2, 21, 19, 14, 0))
 
         # repeat the calculation, nothing changes
         self.assertTrue(np.isclose(self.mock_feels.sentiment, sentiment))
         self.assertEqual(self.mock_feels._latest_calc,
-                         datetime(2017, 2, 21, 19, 14, 18))
+                         datetime(2017, 2, 21, 19, 14, 0))
 
     def test_sentiment_factor(self):
         sentiment = 0.0

@@ -90,9 +90,9 @@ class Test_Data(unittest.TestCase):
             self.feels_db.insert_tweet(t)
 
         it = self.feels_db.fetchbin(binsize=timedelta(minutes=30))
-        self.assertEqual(len(next(it)), 103)
-        self.assertEqual(len(next(it)), 1)
-        self.assertEqual(len(next(it)), 1)
+        self.assertEqual(len(next(it)[0]), 103)
+        self.assertEqual(len(next(it)[0]), 1)
+        self.assertEqual(len(next(it)[0]), 1)
 
     def test_data_operation(self):
         twt = {'created_at': 'Sun Feb 19 19:14:18 +0000 2017',
