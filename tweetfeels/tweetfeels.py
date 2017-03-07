@@ -51,6 +51,42 @@ class TweetFeels(object):
         self.buffer_limit = 50
         self._factor = 0.99
 
+    @property
+    def binsize(self):
+        return self._bin_size
+
+    @binsize.setter
+    def binsize(self, value):
+        assert(isinstance(value, timedelta))
+        if value != self._bin_size:
+            self._latest_calc = self._feels.start
+        self._bin_size = value
+
+    @property
+    def factor(self):
+        return self._factor
+
+    @factor.setter
+    def factor(self, value):
+        assert(value<=1 and value>0)
+        self._latest_calc = self._feels.start
+        self._factor = value
+
+    @property
+    def connected(self):
+        return self._stream.running
+
+    @property
+    def sentiment(self):
+        end = self._feels.end
+        sentiments = self.sentiments(
+            strt=self._latest_calc, end=end, delta_time=self._bin_size
+            )
+        ret = None
+        for s in sentiments:
+            ret = s
+        return ret
+
     def start(self, seconds=None, selfupdate=60):
         """
         Start listening to the stream.
@@ -215,39 +251,3 @@ class TweetFeels(object):
                 val = 0
             s = s*fo + val*(1-fo)
         return s
-
-    @property
-    def binsize(self):
-        return self._bin_size
-
-    @binsize.setter
-    def binsize(self, value):
-        assert(isinstance(value, timedelta))
-        if value != self._bin_size:
-            self._latest_calc = self._feels.start
-        self._bin_size = value
-
-    @property
-    def factor(self):
-        return self._factor
-
-    @factor.setter
-    def factor(self, value):
-        assert(value<=1 and value>0)
-        self._latest_calc = self._feels.start
-        self._factor = value
-
-    @property
-    def connected(self):
-        return self._stream.running
-
-    @property
-    def sentiment(self):
-        end = self._feels.end
-        sentiments = self.sentiments(
-            strt=self._latest_calc, end=end, delta_time=self._bin_size
-            )
-        ret = None
-        for s in sentiments:
-            ret = s
-        return ret
