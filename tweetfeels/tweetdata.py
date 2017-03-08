@@ -105,7 +105,9 @@ class TweetData(object):
                 data=c.fetchmany(df.iloc[i]), columns=self.fields,
                 index='created_at'
                 )
-            if len(frame)>0: yield frame
+            left = df.index[i].to_pydatetime()
+            right = left + binsize
+            if len(frame)>0: yield (frame, left, right)
         c.close()
 
     def tweets_since(self, dt):
