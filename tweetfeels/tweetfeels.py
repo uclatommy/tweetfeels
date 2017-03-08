@@ -178,11 +178,17 @@ class TweetFeels(object):
         """
         Provides a generator for sentiment values in ``delta_time`` increments.
 
-        :param start: The start time at which the generator yeilds a value.
+        :param start: The start time at which the generator yeilds a value. If
+                      not provided, generator will start from beginning of your
+                      dataset.
         :type start: datetime
-        :param end: The ending datetime of the series.
+        :param end: The ending datetime of the series. If not provided,
+                    generator will not stop until it reaches the end of your
+                    dataset.
         :type end: datetime
         :param delta_time: The time length that each sentiment value represents.
+                           If not provided, the generator will use the setting
+                           configured by :class:`TweetFeels`.
         :type delta_time: timedelta
         """
         beginning = self._feels.start
