@@ -26,6 +26,10 @@ class TweetFeels(object):
     :ivar connected: Tells you if TweetFeels is connected and listening to
                      Twitter.
     :ivar sentiment: The real-time sentiment score.
+    :ivar binsize: The fixed observation interval between new sentiment
+                   calculations. (default = 60 seconds)
+    :ivar factor: The fall-off factor used in real-time sentiment calculation.
+                  (default = 0.99)
     """
     _db_factory = (lambda db: TweetData(db))
     _listener_factory = (lambda ctrl: TweetListener(ctrl))
@@ -45,6 +49,43 @@ class TweetFeels(object):
         self._latest_calc = self._feels.start
         self._tweet_buffer = deque()
         self.buffer_limit = 50
+        self._factor = 0.99
+
+    @property
+    def binsize(self):
+        return self._bin_size
+
+    @binsize.setter
+    def binsize(self, value):
+        assert(isinstance(value, timedelta))
+        if value != self._bin_size:
+            self._latest_calc = self._feels.start
+        self._bin_size = value
+
+    @property
+    def factor(self):
+        return self._factor
+
+    @factor.setter
+    def factor(self, value):
+        assert(value<=1 and value>0)
+        self._latest_calc = self._feels.start
+        self._factor = value
+
+    @property
+    def connected(self):
+        return self._stream.running
+
+    @property
+    def sentiment(self):
+        end = self._feels.end
+        sentiments = self.sentiments(
+            strt=self._latest_calc, end=end, delta_time=self._bin_size
+            )
+        ret = None
+        for s in sentiments:
+            ret = s
+        return ret
 
     def start(self, seconds=None, selfupdate=60):
         """
@@ -137,11 +178,17 @@ class TweetFeels(object):
         """
         Provides a generator for sentiment values in ``delta_time`` increments.
 
-        :param start: The start time at which the generator yeilds a value.
+        :param start: The start time at which the generator yeilds a value. If
+                      not provided, generator will start from beginning of your
+                      dataset.
         :type start: datetime
-        :param end: The ending datetime of the series.
+        :param end: The ending datetime of the series. If not provided,
+                    generator will not stop until it reaches the end of your
+                    dataset.
         :type end: datetime
         :param delta_time: The time length that each sentiment value represents.
+                           If not provided, the generator will use the setting
+                           configured by :class:`TweetFeels`.
         :type delta_time: timedelta
         """
         beginning = self._feels.start
@@ -163,7 +210,9 @@ class TweetFeels(object):
         else:
             df = self._feels.tweets_between(self._latest_calc, strt)
 
-        self._sentiment = self.model_sentiment(df, self._sentiment)
+        self._sentiment = self.model_sentiment(
+            df, self._sentiment, self._factor
+            )
         self._latest_calc = strt
 
         # start yielding sentiment values
@@ -180,10 +229,10 @@ class TweetFeels(object):
                 except IndexError:
                     pass
 
-                sentiment.append(self.model_sentiment(df, self._sentiment))
-                bins = int((df.index.max().to_pydatetime() -
-                            self._latest_calc)/delta_time)
-                self._latest_calc =  self._latest_calc + bins*delta_time
+                sentiment.append(
+                    self.model_sentiment(df[0], self._sentiment, self._factor)
+                    )
+                self._latest_calc = df[1]
                 # Yield the latest element
                 yield sentiment[-1]
         else:
@@ -208,18 +257,3 @@ class TweetFeels(object):
                 val = 0
             s = s*fo + val*(1-fo)
         return s
-
-    @property
-    def connected(self):
-        return self._stream.running
-
-    @property
-    def sentiment(self):
-        end = self._feels.end
-        sentiments = self.sentiments(
-            strt=self._latest_calc, end=end, delta_time=self._bin_size
-            )
-        ret = None
-        for s in sentiments:
-            ret = s
-        return ret

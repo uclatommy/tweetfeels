@@ -151,6 +151,15 @@ Where ![f2] is the aggregate sentiment at time t, ![f3] is the sentiment score f
 
 Some tweets will also have a neutral score (0.0). In these cases, we exclude it from aggregation.
 
+Here's an example of different model parameterizations of real-time Tesla sentiment:
+<image src="https://uclatommy.github.io/tweetfeels/images/tesla-sentiment.svg" width="100%" height="300">
+
+A time series can be generated iterating over ``TweetFeels.sentiments`` and creating a dictionary of values with the timestamp as the key. You can then load the dictionary into a pandas dataframe:
+```python
+data1 = {tesla_feels._latest_calc: s for s in tesla_feels.sentiments(delta_time=timedelta(minutes=5))}
+df = pd.DataFrame.from_dict(data1, orient='index')
+```
+
 [f1]: http://chart.apis.google.com/chart?cht=tx&chl=S_{t}=%5calpha{S_{t-1}}%2B(1-%5calpha)s_t
 [f2]: http://chart.apis.google.com/chart?cht=tx&chl=S_t
 [f3]: http://chart.apis.google.com/chart?cht=tx&chl=s_t
