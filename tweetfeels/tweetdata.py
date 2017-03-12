@@ -27,6 +27,14 @@ class TweetBin(object):
     def df(self):
         return self._df
 
+    @property
+    def influence(self):
+        ret = 0
+        if(len(self._df)>0):
+            ret = (self._df['followers_count'].sum() +
+                   self._df['friends_count'].sum())
+        return ret
+
     def __len__(self):
         return len(self._df)
 
@@ -156,7 +164,7 @@ class TweetData(object):
             'SELECT * FROM tweets WHERE created_at > ?', conn, params=(dt,),
             parse_dates=['created_at']
             )
-        return df
+        return TweetBin(df, dt, datetime.now())
 
     def tweets_between(self, start, end):
         """
@@ -173,7 +181,7 @@ class TweetData(object):
             'SELECT * FROM tweets WHERE created_at > ? AND created_at <= ?',
             conn, params=(start, end), parse_dates=['created_at']
             )
-        return df
+        return TweetBin(df, start, end)
 
     def make_feels_db(self, filename='feels.sqlite'):
         """
