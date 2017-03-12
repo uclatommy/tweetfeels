@@ -82,9 +82,10 @@ class TweetFeels(object):
         sentiments = self.sentiments(
             strt=self._latest_calc, end=end, delta_time=self._bin_size
             )
-        ret = None
+        ret = np.nan
         for s in sentiments:
-            ret = s
+            if not np.isnan(s):
+                ret = s
         return ret
 
     def start(self, seconds=None, selfupdate=60):
@@ -174,7 +175,7 @@ class TweetFeels(object):
         """
         self.start()
 
-    def sentiments(self, strt=None, end=None, delta_time=None):
+    def sentiments(self, strt=None, end=None, delta_time=None, nans=False):
         """
         Provides a generator for sentiment values in ``delta_time`` increments.
 
@@ -190,6 +191,9 @@ class TweetFeels(object):
                            If not provided, the generator will use the setting
                            configured by :class:`TweetFeels`.
         :type delta_time: timedelta
+        :param nans: Determines if a nan will be yielded when no tweets are
+                     observed within a bin.
+        :type nans: boolean
         """
         beginning = self._feels.start
 
@@ -219,7 +223,7 @@ class TweetFeels(object):
         end = min(end, self._feels.end)
         if self._latest_calc < end:
             dfs = self._feels.fetchbin(
-                start=self._latest_calc, end=end, binsize=delta_time
+                start=self._latest_calc, end=end, binsize=delta_time, empty=nans
                 )
             sentiment = deque()
             for df in dfs:
@@ -229,12 +233,18 @@ class TweetFeels(object):
                 except IndexError:
                     pass
 
-                sentiment.append(
-                    self.model_sentiment(df[0], self._sentiment, self._factor)
-                    )
+                latest = self._sentiment
+                if len(df[0]) > 0:
+                    latest = self.model_sentiment(
+                        df[0], self._sentiment, self._factor
+                        )
+                sentiment.append(latest)
                 self._latest_calc = df[1]
                 # Yield the latest element
-                yield sentiment[-1]
+                if len(df[0]) == 0 and nans:
+                    yield np.nan
+                else:
+                    yield sentiment[-1]
         else:
             # this only happens when strt >= end
             yield self._sentiment

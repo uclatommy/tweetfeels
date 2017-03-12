@@ -155,6 +155,18 @@ class Test_Feels(unittest.TestCase):
         mock_sentiment = self.mock_feels.sentiment
         self.assertTrue(np.isclose(mock_sentiment, sentiment))
 
+    def test_nans(self):
+        sentiments = self.mock_feels.sentiments(
+            delta_time=timedelta(hours=24), nans=True)
+        s = next(sentiments)
+        self.assertEqual(s, 0)
+        s = next(sentiments)
+        self.assertTrue(np.isnan(s))  # can return nans
+        # does not affect current sentiment
+        self.assertEqual(self.mock_feels._sentiment, 0)
+        s = next(sentiments)
+        self.assertTrue(s<0)
+
     def test_sentiments(self):
         start = datetime(2017, 2, 19, 0, 0, 0)
         dt = timedelta(minutes=30)
