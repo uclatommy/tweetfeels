@@ -4,6 +4,33 @@ import pandas as pd
 import logging
 from datetime import datetime, timedelta
 
+
+class TweetBin(object):
+    """
+    A container for a time-box of tweets. It includes information regarding the
+    upper and lower datetime boundaries for the bin.
+    """
+    def __init__(self, df, lower, upper):
+        self._df = df
+        self._lower = lower
+        self._upper = upper
+
+    @property
+    def start(self):
+        return self._lower
+
+    @property
+    def end(self):
+        return self._upper
+
+    @property
+    def df(self):
+        return self._df
+
+    def __len__(self):
+        return len(self._df)
+
+
 class TweetData(object):
     """
     Models the tweet database.
@@ -114,7 +141,7 @@ class TweetData(object):
                     )
             left = df.index[i].to_pydatetime()
             right = left + binsize
-            if len(frame)>0 or empty: yield (frame, left, right)
+            if len(frame)>0 or empty: yield TweetBin(frame, left, right)
         c.close()
 
     def tweets_since(self, dt):

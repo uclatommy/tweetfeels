@@ -91,26 +91,26 @@ class Test_Data(unittest.TestCase):
 
         it = self.feels_db.fetchbin(binsize=timedelta(minutes=30))
         cur = next(it)
-        self.assertEqual(cur[2]-cur[1], timedelta(minutes=30))
-        self.assertEqual(len(cur[0]), 103)
+        self.assertEqual(cur.end-cur.start, timedelta(minutes=30))
+        self.assertEqual(len(cur), 103)
         cur = next(it)
-        self.assertEqual(len(cur[0]), 1)
+        self.assertEqual(len(cur), 1)
         cur = next(it)
-        self.assertEqual(len(cur[0]), 1)
+        self.assertEqual(len(cur), 1)
 
     def test_empty(self):
         for t in self.mock_tweets:
             self.feels_db.insert_tweet(t)
         it = self.feels_db.fetchbin(binsize=timedelta(hours=12), empty=True)
         cur = next(it)
-        self.assertEqual(len(cur[0]), 1)
+        self.assertEqual(len(cur), 1)
         cur = next(it)
-        self.assertEqual(len(cur[0]), 0)
+        self.assertEqual(len(cur), 0)
         cur = next(it)
-        self.assertEqual(len(cur[0]), 1)
+        self.assertEqual(len(cur), 1)
         cur = next(it)
         cur = next(it)
-        self.assertEqual(len(cur[0]), 1)
+        self.assertEqual(len(cur), 1)
 
     def test_data_operation(self):
         twt = {'created_at': 'Sun Feb 19 19:14:18 +0000 2017',

@@ -222,11 +222,11 @@ class TweetFeels(object):
         # start yielding sentiment values
         end = min(end, self._feels.end)
         if self._latest_calc < end:
-            dfs = self._feels.fetchbin(
+            bins = self._feels.fetchbin(
                 start=self._latest_calc, end=end, binsize=delta_time, empty=nans
                 )
             sentiment = deque()
-            for df in dfs:
+            for b in bins:
                 try:
                     # only save sentiment value if not the last element
                     self._sentiment = sentiment.popleft()
@@ -234,14 +234,14 @@ class TweetFeels(object):
                     pass
 
                 latest = self._sentiment
-                if len(df[0]) > 0:
+                if len(b) > 0:
                     latest = self.model_sentiment(
-                        df[0], self._sentiment, self._factor
+                        b.df, self._sentiment, self._factor
                         )
                 sentiment.append(latest)
-                self._latest_calc = df[1]
+                self._latest_calc = b.start
                 # Yield the latest element
-                if len(df[0]) == 0 and nans:
+                if len(b) == 0 and nans:
                     yield np.nan
                 else:
                     yield sentiment[-1]
