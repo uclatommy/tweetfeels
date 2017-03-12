@@ -12,6 +12,52 @@ from tweetfeels import (TweetData,
 from tweetfeels.utils import clean
 
 
+class Sentiment(object):
+    """
+    A container for sentiment values that provides additional related meta-data.
+
+    :param val: The sentiment value.
+    :type val: numeric
+    :param vol: The sentiment volume.
+    :type vol: numeric
+    :param start: The beginning of the measurement period.
+    :type start: datetime
+    :param end: The end of the measurement period.
+    :type end: datetime
+
+    :ivar value: The sentiment value.
+    :ivar volume: The sentiment volume.
+    :ivar start: The beginning of the measurement period.
+    :ivar end: The end of the measurement period.
+    """
+    def __init__(self, val, vol, start, end):
+        self._val = val
+        self._vol = vol
+        self._start = start
+        self._end = end
+
+    @property
+    def value(self):
+        return self._val
+
+    @property
+    def volume(self):
+        return self._vol
+
+    @property
+    def start(self):
+        return self._start
+
+    @property
+    def end(self):
+        return self._end
+
+    def __str__(self):
+        return self.value
+
+    def __repr__(self):
+        return self.value
+
 class TweetFeels(object):
     """
     The controller.
@@ -43,7 +89,7 @@ class TweetFeels(object):
         self._stream = TweetFeels._stream_factory(_auth, self._listener)
         self.tracking = tracking
         self.lang = ['en']
-        self._sentiment = 0
+        self._sentiment = Sentiment(0, 0, 0, 0)
         self._filter_level = 'low'
         self._bin_size = timedelta(seconds=60)
         self._latest_calc = self._feels.start
@@ -207,13 +253,13 @@ class TweetFeels(object):
 
         # get to the starting point
         if strt < self._latest_calc:
-            self._sentiment = 0
-            df = self._feels.tweets_between(beginning, strt)
+            self._sentiment = Sentiment(0, 0, 0, 0)
+            b = self._feels.tweets_between(beginning, strt)
         else:
-            df = self._feels.tweets_between(self._latest_calc, strt)
+            b = self._feels.tweets_between(self._latest_calc, strt)
 
         self._sentiment = self.model_sentiment(
-            df, self._sentiment, self._factor
+            b, self._sentiment, self._factor
             )
         self._latest_calc = strt
 
@@ -234,28 +280,29 @@ class TweetFeels(object):
                 latest = self._sentiment
                 if len(b) > 0:
                     latest = self.model_sentiment(
-                        b.df, self._sentiment, self._factor
+                        b, self._sentiment, self._factor
                         )
                 sentiment.append(latest)
                 self._latest_calc = b.start
                 # Yield the latest element
                 if len(b) == 0 and nans:
-                    yield np.nan
+                    yield Sentiment(np.nan, b.influence, b.start, b.end)
                 else:
                     yield sentiment[-1]
         else:
             # this only happens when strt >= end
             yield self._sentiment
 
-    def model_sentiment(self, df, s, fo=0.99):
+    def model_sentiment(self, b, s, fo=0.99):
         """
         Defines the real-time sentiment model given a dataframe of tweets.
 
-        :param df: A tweets dataframe.
-        :param s: The initial sentiment value to begin calculation.
+        :param b: A ``TweetBin`` to calculate the new sentiment value.
+        :param s: The initial Sentiment to begin calculation.
         :param fo: Fall-off factor
         """
-        df = df.loc[df.sentiment != 0]  # drop rows having 0 sentiment
+        df = b.df.loc[b.df.sentiment != 0]  # drop rows having 0 sentiment
+        newval = s.value
         if(len(df)>0):
             try:
                 val = np.average(
@@ -263,5 +310,5 @@ class TweetFeels(object):
                     )
             except ZeroDivisionError:
                 val = 0
-            s = s*fo + val*(1-fo)
-        return s
+            newval = s.value*fo + val*(1-fo)
+        return Sentiment(newval, b.influence, b.start, b.end)
