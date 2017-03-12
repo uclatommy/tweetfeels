@@ -82,11 +82,9 @@ class TweetFeels(object):
         sentiments = self.sentiments(
             strt=self._latest_calc, end=end, delta_time=self._bin_size
             )
-        ret = np.nan
         for s in sentiments:
-            if not np.isnan(s):
-                ret = s
-        return ret
+            pass
+        return s
 
     def start(self, seconds=None, selfupdate=60):
         """
