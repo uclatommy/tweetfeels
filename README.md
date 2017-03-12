@@ -143,7 +143,7 @@ Timer completed. Disconnecting now...
 # Methodology
 There are a multitude of ways in which you could combine hundreds or thousands of tweets across time in order to calculate a single sentiment score. One naive method might be to bin tweets into discretized time-boxes. For example, perhaps you average the individual sentiment scores every 10 seconds so that the current sentiment is the average over the last 10 seconds. In this method, your choice of discretization length is arbitrary and will have an impact on the perceived variance of the score. It also disregards any past sentiment calculations.
 
-To correct for these effects, we time-box every second and do not discard the sentiment from prior calculations. Instead, we phase out older tweet sentiments geometrically as we add in new tweets:
+To correct for these effects, we time-box every minute by default and do not discard the sentiment from prior calculations. Instead, we phase out older tweet sentiments geometrically as we add in new tweets:
 
 ![f1]
 

@@ -9,6 +9,18 @@ class TweetBin(object):
     """
     A container for a time-box of tweets. It includes information regarding the
     upper and lower datetime boundaries for the bin.
+
+    :param df: The data associated with a bin.
+    :type df: DataFrame
+    :param lower: The lower bound of the bin.
+    :type lower: datetime
+    :param upper: The upper bound of the bin.
+    :type upper: datetime
+
+    :ivar df: The dataframe containing tweet data for the bin.
+    :ivar influence: A measure of total tweet influence associated with the bin.
+    :ivar start: The beginning datetime for the bin.
+    :ivar end: The ending datetime for the bin.
     """
     def __init__(self, df, lower, upper):
         self._df = df
