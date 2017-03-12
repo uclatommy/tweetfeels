@@ -139,6 +139,25 @@ Timer completed. Disconnecting now...
 [Mon Feb 20 17:53:16 2017] Sentiment Score: 0.2485916177213093
 ```
 
+#### Use the sentiments generator to replay captured data and plot
+```python
+import pandas as pd
+from datetime import timedelta, datetime
+import matplotlib.pyplot as plt
+import matplotlib.dates as mdates
+data1 = {s.end: s.value for s in tesla_feels.sentiments(delta_time=timedelta(minutes=15), nans=True)}
+data2 = {s.end: s.volume for s in tesla_feels.sentiments(delta_time=timedelta(minutes=15), nans=True)}
+df1 = pd.DataFrame.from_dict(data1, orient='index')
+df2 = pd.DataFrame.from_dict(data2, orient='index')
+fig, axes = plt.subplots(nrows=2, ncols=1)
+fig.set_size_inches(15, 5)
+plt.subplot(211).axes.get_xaxis().set_visible(False)
+df1[0].plot(kind='line', title='Tesla Sentiment')
+plt.subplot(212)
+df2[0].plot(kind='area', title='Volume')
+```
+<image src="https://uclatommy.github.io/tweetfeels/images/volume.svg" width="100%" height="300">
+
 # Methodology
 There are a multitude of ways in which you could combine hundreds or thousands of tweets across time in order to calculate a single sentiment score. One naive method might be to bin tweets into discretized time-boxes. For example, perhaps you average the individual sentiment scores every 10 seconds so that the current sentiment is the average over the last 10 seconds. In this method, your choice of discretization length is arbitrary and will have an impact on the perceived variance of the score. It also disregards any past sentiment calculations.
 
@@ -152,12 +171,6 @@ Some tweets will also have a neutral score (0.0). In these cases, we exclude it 
 
 Here's an example of different model parameterizations of real-time Tesla sentiment:
 <image src="https://uclatommy.github.io/tweetfeels/images/tesla-sentiment.svg" width="100%" height="300">
-
-A time series can be generated iterating over ``TweetFeels.sentiments`` and creating a dictionary of values with the timestamp as the key. You can then load the dictionary into a pandas dataframe:
-```python
-data1 = {tesla_feels._latest_calc: s for s in tesla_feels.sentiments(delta_time=timedelta(minutes=5))}
-df = pd.DataFrame.from_dict(data1, orient='index')
-```
 
 [f1]: http://chart.apis.google.com/chart?cht=tx&chl=S_{t}=%5calpha{S_{t-1}}%2B(1-%5calpha)s_t
 [f2]: http://chart.apis.google.com/chart?cht=tx&chl=S_t
