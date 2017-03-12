@@ -67,7 +67,7 @@ login = [consumer_key, consumer_secret, access_token, access_token_secret]
 >>> trump_feels = TweetFeels(login, tracking=['trump'])
 >>> trump_feels.start(10)
 Timer completed. Disconnecting now...
->>> trump_feels.sentiment
+>>> trump_feels.sentiment.value
 -0.0073007430343252711
 ```
 
@@ -79,7 +79,7 @@ Timer completed. Disconnecting now...
 >>> def print_feels(seconds=10):
 ...     while go_on:
 ...         time.sleep(seconds)
-...         print(f'[{time.ctime()}] Sentiment Score: {trump_feels.sentiment}')
+...         print(f'[{time.ctime()}] Sentiment Score: {trump_feels.sentiment.value}')
 ...
 >>> go_on = True
 >>> t = Thread(target=print_feels)
@@ -126,7 +126,6 @@ Timer completed. Disconnecting now...
 
 ```python
 >>> tesla_feels = TweetFeels(login, tracking=['tesla', 'tsla', 'gigafactory', 'elonmusk'], db='tesla.sqlite')
->>> tesla_feels.calc_every_n = 10
 >>> t = Thread(target=print_feels, args=(tesla_feels, 120))
 >>> tesla_feels.start()
 >>> t.start()
