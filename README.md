@@ -165,7 +165,7 @@ To correct for these effects, we time-box every minute by default and do not dis
 
 ![f1]
 
-Where ![f2] is the aggregate sentiment at time t, ![f3] is the sentiment score for the current time-box, and ![f5] is the fall-off factor between 0 and 1. We start the calculation with ![f4], which is why you will see the sentiment score move away from zero until it stabilizes around the natural value. Within each time-box we are using a weighted average of sentiment scores. For each tweet, we utilize the associated user's follower count as the measure of influence.
+Where ![f2] is the aggregate sentiment at time t, ![f3] is the sentiment score for the current time-box, and ![f5] is the fall-off factor between 0 and 1. We start the calculation with ![f4], which is why you will see the sentiment score move away from zero until it stabilizes around the natural value. Within each time-box we are using a weighted average of sentiment scores. For each tweet, we utilize the associated user's followers and friends count as the measure of influence.
 
 Some tweets will also have a neutral score (0.0). In these cases, we exclude it from aggregation.
 
