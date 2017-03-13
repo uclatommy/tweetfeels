@@ -6,7 +6,7 @@ import time
 import numpy as np
 from datetime import datetime, timedelta
 
-from tweetfeels import (TweetFeels, Tweet, TweetData)
+from tweetfeels import (TweetFeels, Tweet, TweetData, Sentiment)
 
 
 class Test_Feels(unittest.TestCase):
@@ -86,11 +86,11 @@ class Test_Feels(unittest.TestCase):
     def test_sentiment(self):
         mock_feels = TweetFeels("abcd")
         mock_feels._feels.tweets_since = MagicMock(return_value=[])
-        mock_feels._sentiment = 0.5
+        mock_feels._sentiment = Sentiment(0.5, 0, 0, 0)
         mock_feels._latest_calc = datetime(2017, 1, 1, 0, 0, 0)
         mock_feels._feels.start = datetime(2017, 1, 1, 0, 0, 0)
         mock_feels._feels.end = datetime(2017, 1, 1, 0, 0, 0)
-        self.assertEqual(mock_feels.sentiment, 0.5)
+        self.assertEqual(mock_feels.sentiment.value, 0.5)
 
     def test_buffer(self):
         mock_feels = TweetFeels('abcd')
@@ -120,7 +120,7 @@ class Test_Feels(unittest.TestCase):
         # calc = 0*0.99**2 + 0.01*0.99*-0.7531 + 0.01*-0.5719
         #      = -0.01299649
         self.mock_feels._latest_calc = self.mock_feels._feels.start
-        self.assertTrue(np.isclose(self.mock_feels.sentiment, sentiment))
+        self.assertTrue(np.isclose(self.mock_feels.sentiment.value, sentiment))
         # first observation is at 2017-2-19 19:14:18 and we are using default
         # 60 second bins, therefore the observation at 2017-2-21 19:14:20 will
         # never get saved but will always be recalculated.
@@ -128,9 +128,11 @@ class Test_Feels(unittest.TestCase):
                          datetime(2017, 2, 21, 19, 14, 0))
 
         # repeat the calculation, nothing changes
-        self.assertTrue(np.isclose(self.mock_feels.sentiment, sentiment))
+        self.assertTrue(np.isclose(self.mock_feels.sentiment.value, sentiment))
         self.assertEqual(self.mock_feels._latest_calc,
                          datetime(2017, 2, 21, 19, 14, 0))
+        self.assertEqual(self.mock_feels.sentiment.start,
+                         self.mock_feels._latest_calc)
 
     def test_sentiment_factor(self):
         sentiment = 0.0
@@ -141,7 +143,7 @@ class Test_Feels(unittest.TestCase):
 
         # calc = 0*0.75**2 + 0.25*0.75*-0.7531 + 0.25*-0.5719
         #      = -0.28418125
-        mock_sentiment = self.mock_feels.sentiment
+        mock_sentiment = self.mock_feels.sentiment.value
         self.assertTrue(np.isclose(mock_sentiment, sentiment))
 
     def test_sentiment_binsize(self):
@@ -152,16 +154,28 @@ class Test_Feels(unittest.TestCase):
 
         self.mock_feels.factor = 0.75
         self.mock_feels.binsize = timedelta(days=2.5)
-        mock_sentiment = self.mock_feels.sentiment
+        mock_sentiment = self.mock_feels.sentiment.value
         self.assertTrue(np.isclose(mock_sentiment, sentiment))
+
+    def test_nans(self):
+        sentiments = self.mock_feels.sentiments(
+            delta_time=timedelta(hours=24), nans=True)
+        s = next(sentiments)
+        self.assertEqual(s.value, 0)
+        s = next(sentiments)
+        self.assertTrue(np.isnan(s.value))  # can return nans
+        # does not affect current sentiment
+        self.assertEqual(self.mock_feels._sentiment.value, 0)
+        s = next(sentiments)
+        self.assertTrue(s.value<0)
 
     def test_sentiments(self):
         start = datetime(2017, 2, 19, 0, 0, 0)
         dt = timedelta(minutes=30)
         sentiment = self.mock_feels.sentiments(strt=start, delta_time=dt)
-        self.assertTrue(np.isclose(next(sentiment), 0))
-        self.assertTrue(np.isclose(next(sentiment), -0.007351))
-        self.assertTrue(np.isclose(next(sentiment), -0.01299649))
+        self.assertTrue(np.isclose(next(sentiment).value, 0))
+        self.assertTrue(np.isclose(next(sentiment).value, -0.007351))
+        self.assertTrue(np.isclose(next(sentiment).value, -0.01299649))
         for s in sentiment:
             print(s)
         # we are starting at 2017-2-19 19:00:00 and using bins with length 30
