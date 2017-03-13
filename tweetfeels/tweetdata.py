@@ -4,6 +4,53 @@ import pandas as pd
 import logging
 from datetime import datetime, timedelta
 
+
+class TweetBin(object):
+    """
+    A container for a time-box of tweets. It includes information regarding the
+    upper and lower datetime boundaries for the bin.
+
+    :param df: The data associated with a bin.
+    :type df: DataFrame
+    :param lower: The lower bound of the bin.
+    :type lower: datetime
+    :param upper: The upper bound of the bin.
+    :type upper: datetime
+
+    :ivar df: The dataframe containing tweet data for the bin.
+    :ivar influence: A measure of total tweet influence associated with the bin.
+    :ivar start: The beginning datetime for the bin.
+    :ivar end: The ending datetime for the bin.
+    """
+    def __init__(self, df, lower, upper):
+        self._df = df
+        self._lower = lower
+        self._upper = upper
+
+    @property
+    def start(self):
+        return self._lower
+
+    @property
+    def end(self):
+        return self._upper
+
+    @property
+    def df(self):
+        return self._df
+
+    @property
+    def influence(self):
+        ret = 0
+        if(len(self._df)>0):
+            ret = (self._df['followers_count'].sum() +
+                   self._df['friends_count'].sum())
+        return ret
+
+    def __len__(self):
+        return len(self._df)
+
+
 class TweetData(object):
     """
     Models the tweet database.
@@ -114,7 +161,7 @@ class TweetData(object):
                     )
             left = df.index[i].to_pydatetime()
             right = left + binsize
-            if len(frame)>0 or empty: yield (frame, left, right)
+            if len(frame)>0 or empty: yield TweetBin(frame, left, right)
         c.close()
 
     def tweets_since(self, dt):
@@ -129,7 +176,7 @@ class TweetData(object):
             'SELECT * FROM tweets WHERE created_at > ?', conn, params=(dt,),
             parse_dates=['created_at']
             )
-        return df
+        return TweetBin(df, dt, datetime.now())
 
     def tweets_between(self, start, end):
         """
@@ -146,7 +193,7 @@ class TweetData(object):
             'SELECT * FROM tweets WHERE created_at > ? AND created_at <= ?',
             conn, params=(start, end), parse_dates=['created_at']
             )
-        return df
+        return TweetBin(df, start, end)
 
     def make_feels_db(self, filename='feels.sqlite'):
         """
