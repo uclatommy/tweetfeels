@@ -23,13 +23,13 @@ class Test_Data(unittest.TestCase):
             {'created_at': 'Sun Feb 20 19:14:19 +0000 2017',
              'id_str': '833394296418082818',
              'text': 'Fake news. Sad!',
-             'user': {'followers_count': '100', 'friends_count': '200',
+             'user': {'followers_count': '200', 'friends_count': '200',
                       'location':None}
             }, # sentiment value = -0.7351
             {'created_at': 'Sun Feb 21 19:14:20 +0000 2017',
              'id_str': '833394296418082819',
              'text': 'I hate it.',
-             'user': {'followers_count': '100', 'friends_count': '200',
+             'user': {'followers_count': '200', 'friends_count': '200',
                       'location':None}
             } # sentiment value = -0.5719
             ]
@@ -91,12 +91,40 @@ class Test_Data(unittest.TestCase):
 
         it = self.feels_db.fetchbin(binsize=timedelta(minutes=30))
         cur = next(it)
-        self.assertEqual(cur[2]-cur[1], timedelta(minutes=30))
-        self.assertEqual(len(cur[0]), 103)
+        self.assertEqual(cur.end-cur.start, timedelta(minutes=30))
+        self.assertEqual(len(cur), 103)
         cur = next(it)
-        self.assertEqual(len(cur[0]), 1)
+        self.assertEqual(len(cur), 1)
         cur = next(it)
-        self.assertEqual(len(cur[0]), 1)
+        self.assertEqual(len(cur), 1)
+
+    def test_empty(self):
+        for t in self.mock_tweets:
+            self.feels_db.insert_tweet(t)
+        it = self.feels_db.fetchbin(binsize=timedelta(hours=12), empty=True)
+        cur = next(it)
+        self.assertEqual(len(cur), 1)
+        cur = next(it)
+        self.assertEqual(len(cur), 0)
+        cur = next(it)
+        self.assertEqual(len(cur), 1)
+        cur = next(it)
+        cur = next(it)
+        self.assertEqual(len(cur), 1)
+
+    def test_bin(self):
+        for t in self.mock_tweets:
+            self.feels_db.insert_tweet(t)
+        it = self.feels_db.fetchbin(binsize=timedelta(hours=12), empty=True)
+        cur = next(it)
+        self.assertEqual(cur.influence, 300)
+        cur = next(it)
+        self.assertEqual(cur.influence, 0)
+        cur = next(it)
+        self.assertEqual(cur.influence, 400)
+        cur = next(it)
+        cur = next(it)
+        self.assertEqual(cur.influence, 400)
 
     def test_data_operation(self):
         twt = {'created_at': 'Sun Feb 19 19:14:18 +0000 2017',
@@ -105,12 +133,12 @@ class Test_Data(unittest.TestCase):
         t = Tweet(twt)
         self.assertEqual(len(t.keys()), 7)
         self.feels_db.insert_tweet(t)
-        df = self.feels_db.tweets_since(datetime.now())
-        self.assertEqual(len(df), 0)
-        df = self.feels_db.tweets_since(0)
-        self.assertEqual(len(df), 1)
-        df.sentiment = 0.9
-        for row in df.itertuples():
+        b = self.feels_db.tweets_since(datetime.now())
+        self.assertEqual(len(b), 0)
+        b = self.feels_db.tweets_since(0)
+        self.assertEqual(len(b), 1)
+        b.df.sentiment = 0.9
+        for row in b.df.itertuples():
             self.feels_db.update_tweet(
                 {'id_str': row.id_str, 'sentiment': row.sentiment}
                 )
@@ -118,8 +146,8 @@ class Test_Data(unittest.TestCase):
         start = datetime(2017, 2, 17, 0, 0, 0)
         before = datetime(2017, 2, 18, 0, 0, 0)
         after = datetime(2017, 2, 20, 0, 0, 0)
-        df = self.feels_db.tweets_between(start, before)
-        self.assertEqual(len(df), 0)
+        b = self.feels_db.tweets_between(start, before)
+        self.assertEqual(len(b), 0)
 
-        df = self.feels_db.tweets_between(start, after)
-        self.assertEqual(len(df), 1)
+        b = self.feels_db.tweets_between(start, after)
+        self.assertEqual(len(b), 1)

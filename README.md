@@ -67,7 +67,7 @@ login = [consumer_key, consumer_secret, access_token, access_token_secret]
 >>> trump_feels = TweetFeels(login, tracking=['trump'])
 >>> trump_feels.start(10)
 Timer completed. Disconnecting now...
->>> trump_feels.sentiment
+>>> trump_feels.sentiment.value
 -0.0073007430343252711
 ```
 
@@ -79,7 +79,7 @@ Timer completed. Disconnecting now...
 >>> def print_feels(seconds=10):
 ...     while go_on:
 ...         time.sleep(seconds)
-...         print(f'[{time.ctime()}] Sentiment Score: {trump_feels.sentiment}')
+...         print(f'[{time.ctime()}] Sentiment Score: {trump_feels.sentiment.value}')
 ...
 >>> go_on = True
 >>> t = Thread(target=print_feels)
@@ -126,7 +126,6 @@ Timer completed. Disconnecting now...
 
 ```python
 >>> tesla_feels = TweetFeels(login, tracking=['tesla', 'tsla', 'gigafactory', 'elonmusk'], db='tesla.sqlite')
->>> tesla_feels.calc_every_n = 10
 >>> t = Thread(target=print_feels, args=(tesla_feels, 120))
 >>> tesla_feels.start()
 >>> t.start()
@@ -140,25 +139,38 @@ Timer completed. Disconnecting now...
 [Mon Feb 20 17:53:16 2017] Sentiment Score: 0.2485916177213093
 ```
 
+#### Use the sentiments generator to replay captured data and plot
+```python
+import pandas as pd
+from datetime import timedelta, datetime
+import matplotlib.pyplot as plt
+import matplotlib.dates as mdates
+data1 = {s.end: s.value for s in tesla_feels.sentiments(delta_time=timedelta(minutes=15), nans=True)}
+data2 = {s.end: s.volume for s in tesla_feels.sentiments(delta_time=timedelta(minutes=15), nans=True)}
+df1 = pd.DataFrame.from_dict(data1, orient='index')
+df2 = pd.DataFrame.from_dict(data2, orient='index')
+fig, axes = plt.subplots(nrows=2, ncols=1)
+fig.set_size_inches(15, 5)
+plt.subplot(211).axes.get_xaxis().set_visible(False)
+df1[0].plot(kind='line', title='Tesla Sentiment')
+plt.subplot(212)
+df2[0].plot(kind='area', title='Volume')
+```
+<image src="https://uclatommy.github.io/tweetfeels/images/volume.svg" width="100%" height="300">
+
 # Methodology
 There are a multitude of ways in which you could combine hundreds or thousands of tweets across time in order to calculate a single sentiment score. One naive method might be to bin tweets into discretized time-boxes. For example, perhaps you average the individual sentiment scores every 10 seconds so that the current sentiment is the average over the last 10 seconds. In this method, your choice of discretization length is arbitrary and will have an impact on the perceived variance of the score. It also disregards any past sentiment calculations.
 
-To correct for these effects, we time-box every second and do not discard the sentiment from prior calculations. Instead, we phase out older tweet sentiments geometrically as we add in new tweets:
+To correct for these effects, we time-box every minute by default and do not discard the sentiment from prior calculations. Instead, we phase out older tweet sentiments geometrically as we add in new tweets:
 
 ![f1]
 
-Where ![f2] is the aggregate sentiment at time t, ![f3] is the sentiment score for the current time-box, and ![f5] is the fall-off factor between 0 and 1. We start the calculation with ![f4], which is why you will see the sentiment score move away from zero until it stabilizes around the natural value. Within each time-box we are using a weighted average of sentiment scores. For each tweet, we utilize the associated user's follower count as the measure of influence.
+Where ![f2] is the aggregate sentiment at time t, ![f3] is the sentiment score for the current time-box, and ![f5] is the fall-off factor between 0 and 1. We start the calculation with ![f4], which is why you will see the sentiment score move away from zero until it stabilizes around the natural value. Within each time-box we are using a weighted average of sentiment scores. For each tweet, we utilize the associated user's followers and friends count as the measure of influence.
 
 Some tweets will also have a neutral score (0.0). In these cases, we exclude it from aggregation.
 
 Here's an example of different model parameterizations of real-time Tesla sentiment:
 <image src="https://uclatommy.github.io/tweetfeels/images/tesla-sentiment.svg" width="100%" height="300">
-
-A time series can be generated iterating over ``TweetFeels.sentiments`` and creating a dictionary of values with the timestamp as the key. You can then load the dictionary into a pandas dataframe:
-```python
-data1 = {tesla_feels._latest_calc: s for s in tesla_feels.sentiments(delta_time=timedelta(minutes=5))}
-df = pd.DataFrame.from_dict(data1, orient='index')
-```
 
 [f1]: http://chart.apis.google.com/chart?cht=tx&chl=S_{t}=%5calpha{S_{t-1}}%2B(1-%5calpha)s_t
 [f2]: http://chart.apis.google.com/chart?cht=tx&chl=S_t
