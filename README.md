@@ -13,6 +13,7 @@
      <img src="https://img.shields.io/badge/CLA-open-brightgreen.svg">
 </a>
 </p>
+
 # Introduction
 Tweetfeels relies on [VADER sentiment analysis](https://github.com/cjhutto/vaderSentiment) to provide sentiment scores to user-defined topics. It does this by utilizing Twitter's streaming API to listen to real-time tweets around a particular topic. Some possible applications for this include:
 * Calculating the social sentiment of particular political figures or issues and analyzing scores across geographic regions.
