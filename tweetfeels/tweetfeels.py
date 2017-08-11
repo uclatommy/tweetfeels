@@ -128,6 +128,7 @@ class TweetFeels(object):
         sentiments = self.sentiments(
             strt=self._latest_calc, end=end, delta_time=self._bin_size
             )
+        s = None
         for s in sentiments:
             pass
         return s
