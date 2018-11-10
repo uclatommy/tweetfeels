@@ -11,9 +11,14 @@ matrix:
     - os: osx
       language: generic
 
-before_install:
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then virtualenv venv -p python3; fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then source venv/bin/activate; fi
+before_install: |	
+  if [ "$TRAVIS_OS_NAME" == "osx" ]; then	
+    brew update
+    brew upgrade python;
+    python3.6 -m pip install -q virtualenv;
+    virtualenv venv -p python3;
+    source venv/bin/activate;
+  fi
 
 install:
   - pip3 install -r requirements.txt
