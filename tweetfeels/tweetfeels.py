@@ -2,14 +2,12 @@ import time
 from datetime import datetime, timedelta
 from threading import Thread
 from collections import deque
-from nltk.sentiment.vader import SentimentIntensityAnalyzer
 import numpy as np
 
 from tweepy import (OAuthHandler,
                     Stream)
 from tweetfeels import (TweetData,
                         TweetListener)
-from tweetfeels.utils import clean
 
 
 class Sentiment(object):
