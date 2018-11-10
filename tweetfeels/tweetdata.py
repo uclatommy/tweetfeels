@@ -68,6 +68,9 @@ class TweetData(object):
             self.make_feels_db(self._db)
         self._debug = False
         self.fields = self._fields
+        self.default_fetch = (
+            "SELECT * FROM tweets WHERE created_at > ? AND created_at <= ?"
+            )
 
     @property
     def _fields(self):
@@ -122,7 +125,7 @@ class TweetData(object):
         return df
 
     def fetchbin(self, start=None, end=None, binsize=timedelta(seconds=60),
-                 empty=False):
+                 empty=False, fetch_q=None, fetch_params=None):
         """
         Returns a generator that can be used to iterate over the tweet data
         based on ``binsize``.
@@ -139,20 +142,24 @@ class TweetData(object):
         :rtype: tuple
         """
         second = timedelta(seconds=1)
-        if start is None: start=self.start-second
-        if end is None: end=self.end
-        if start == self.start: start = start-second
+        if start is None:
+            start = self.start-second
+        if end is None:
+            end = self.end
+        if start == self.start:
+            start = start-second
         df = self.tweet_dates
-        df = df.groupby(pd.TimeGrouper(freq=f'{int(binsize/second)}S')).size()
+        df = df.groupby(pd.Grouper(freq=f'{int(binsize/second)}S')).size()
         df = df[df.index > start - binsize]
-        if not empty: df = df[df != 0]
+        if not empty:
+            df = df[df != 0]
         conn = sqlite3.connect(self._db, detect_types=sqlite3.PARSE_DECLTYPES)
         c = conn.cursor()
-        c.execute(
-            "SELECT * FROM tweets WHERE created_at > ? AND created_at <= ?",
-            (start, end)
-            )
-        for i in range(0,len(df)):
+        if fetch_q is None:
+            fetch_q = self.default_fetch
+            fetch_params = (start, end)
+        c.execute(fetch_q, fetch_params)
+        for i in range(0, len(df)):
             frame = []
             if df.iloc[i] > 0:
                 frame = pd.DataFrame.from_records(
@@ -161,7 +168,8 @@ class TweetData(object):
                     )
             left = df.index[i].to_pydatetime()
             right = left + binsize
-            if len(frame)>0 or empty: yield TweetBin(frame, left, right)
+            if len(frame) > 0 or empty:
+                yield TweetBin(frame, left, right)
         c.close()
 
     def tweets_since(self, dt):
