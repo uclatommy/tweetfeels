@@ -155,15 +155,10 @@ class TweetFeels(object):
         if len(self.tracking) == 0:
             print('Nothing to track!')
         else:
-            self._stream.filter(
-                track=self.tracking, languages=self.lang, async=True
-                )
-#  This does not work due to upstream bug in tweepy 3.5.0. They have fixed it in
-#  https://github.com/tweepy/tweepy/pull/783
-#            self._stream.filter(
-#               track=self.tracking, languages=self.lang, async=True,
-#               filter_level=self._filter_level
-#               )
+           self._stream.filter(
+              track=self.tracking, languages=self.lang, is_async=True,
+              filter_level=self._filter_level
+              )
         if seconds is not None:
             t = Thread(target=delayed_stop)
             t.start()

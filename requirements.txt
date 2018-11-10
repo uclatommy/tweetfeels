@@ -8,6 +8,6 @@ pytz>=2016.10
 requests>=2.13.0
 requests-oauthlib>=0.8.0
 six>=1.10.0
-tweepy>=3.5.0
+-e git://github.com/tweepy/tweepy.git@2efe385fc69385b57733f747ee62e6be12a1338b#egg=tweepy
 twython>=3.4.0
 nose

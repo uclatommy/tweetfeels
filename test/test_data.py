@@ -68,7 +68,7 @@ class Test_Data(unittest.TestCase):
         df = self.feels_db.tweet_dates
         timebox = timedelta(seconds=60)
         second = timedelta(seconds=1)
-        df = df.groupby(pd.TimeGrouper(freq=f'{int(timebox/second)}S')).size()
+        df = df.groupby(pd.Grouper(freq=f'{int(timebox/second)}S')).size()
         df = df[df != 0]
         print(df)
         self.assertEqual(len(df), 3)
